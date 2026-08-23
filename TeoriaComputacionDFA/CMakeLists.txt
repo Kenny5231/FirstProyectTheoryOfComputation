@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(SistemaDFA src/main.cpp)
+add_executable(SistemaDFA
+	src/main.cpp
+	src/estructuras/ListaEstados.cpp
+)
 
 target_include_directories(SistemaDFA PRIVATE include)
