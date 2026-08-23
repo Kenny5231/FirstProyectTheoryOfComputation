@@ -51,11 +51,26 @@ FASE 3:
 - Recorrido manual.
 - Liberacion manual de memoria.
 
+FASE 4:
+- NodoTransicion.
+- ListaTransiciones.
+- Almacenamiento manual de origen, simbolo y destino.
+- Insercion manual.
+- Busqueda exacta manual.
+- Conteo manual de transiciones por (origen, simbolo).
+- Eliminacion manual.
+- Recorrido manual.
+- Liberacion manual de memoria.
+- ListaTransiciones solo almacena informacion y no valida todavia si el DFA es formalmente correcto.
+
 Todavia NO estan implementados:
-- DFA completo.
+- Clase DFA.
 - Estado inicial.
-- Estados finales.
-- Transiciones.
+- Estados finales dentro del DFA.
 - Validacion estricta.
+- Totalidad.
+- Determinismo como validacion.
+- Integridad de destinos.
 - Union.
+- Producto cartesiano.
 - Simulacion de cadenas.

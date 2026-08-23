@@ -2,6 +2,7 @@
 
 #include "estructuras/ListaEstados.h"
 #include "estructuras/ListaSimbolos.h"
+#include "estructuras/ListaTransiciones.h"
 
 int main() {
     ListaEstados estados;
@@ -131,6 +132,68 @@ int main() {
     std::cout << "Insertar despues de vaciar lista (k): "
               << (casosBorde.insertar("k") ? "OK" : "ERROR") << std::endl;
     std::cout << "Cantidad final casos borde: " << casosBorde.cantidad() << std::endl;
+    std::cout << std::endl;
+
+    ListaTransiciones transiciones;
+
+    std::cout << "FASE 4 - PRUEBA LISTA DE TRANSICIONES" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Lista inicialmente vacia: "
+              << (transiciones.estaVacia() ? "SI" : "NO") << std::endl;
+    std::cout << std::endl;
+
+    transiciones.insertar("q0", "a", "q1");
+    transiciones.insertar("q0", "b", "q0");
+    transiciones.insertar("q1", "a", "q2");
+    transiciones.insertar("q1", "b", "q0");
+
+    transiciones.mostrar();
+    std::cout << std::endl;
+
+    std::cout << "Cantidad total: " << transiciones.cantidad() << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Existe q0 --a--> q1: "
+              << (transiciones.existeTransicionExacta("q0", "a", "q1") ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Existe q0 --a--> q5: "
+              << (transiciones.existeTransicionExacta("q0", "a", "q5") ? "SI" : "NO")
+              << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Cantidad por par (q0,a): "
+              << transiciones.cantidadPorPar("q0", "a") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Insertando intencionalmente q0 --a--> q2" << std::endl;
+    transiciones.insertar("q0", "a", "q2");
+    std::cout << "Cantidad por par (q0,a): "
+              << transiciones.cantidadPorPar("q0", "a") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Eliminando exactamente q0 --a--> q2: "
+              << (transiciones.eliminarTransicionExacta("q0", "a", "q2") ? "OK" : "NO EXISTE")
+              << std::endl;
+    std::cout << "Cantidad por par (q0,a): "
+              << transiciones.cantidadPorPar("q0", "a") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Eliminar transicion inexistente q2 --b--> q1: "
+              << (transiciones.eliminarTransicionExacta("q2", "b", "q1") ? "OK" : "NO EXISTE")
+              << std::endl;
+
+    std::cout << "Eliminar primer nodo q0 --a--> q1: "
+              << (transiciones.eliminarTransicionExacta("q0", "a", "q1") ? "OK" : "NO EXISTE")
+              << std::endl;
+
+    std::cout << "Eliminar ultimo nodo q1 --b--> q0: "
+              << (transiciones.eliminarTransicionExacta("q1", "b", "q0") ? "OK" : "NO EXISTE")
+              << std::endl;
+    std::cout << std::endl;
+
+    transiciones.mostrar();
+    std::cout << "Cantidad final transiciones: " << transiciones.cantidad() << std::endl;
 
     return 0;
 }

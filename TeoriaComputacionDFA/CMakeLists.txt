@@ -10,6 +10,7 @@ add_executable(SistemaDFA
 	src/main.cpp
 	src/estructuras/ListaEstados.cpp
 	src/estructuras/ListaSimbolos.cpp
+	src/estructuras/ListaTransiciones.cpp
 )
 
 target_include_directories(SistemaDFA PRIVATE include)
