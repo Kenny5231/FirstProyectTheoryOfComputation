@@ -12,6 +12,8 @@ private:
 public:
     ListaEstados();
     ~ListaEstados();
+    ListaEstados(const ListaEstados&) = delete;
+    ListaEstados& operator=(const ListaEstados&) = delete;
 
     bool estaVacia() const;
     bool existe(const std::string& nombre) const;

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "estructuras/ListaEstados.h"
+#include "estructuras/ListaSimbolos.h"
 
 int main() {
     ListaEstados estados;
@@ -52,6 +53,84 @@ int main() {
 
     std::cout << "Intentando eliminar q5:" << std::endl;
     std::cout << (estados.eliminar("q5") ? "OK" : "NO EXISTE") << std::endl;
+    std::cout << std::endl;
+
+    ListaSimbolos simbolos;
+
+    std::cout << "FASE 3 - PRUEBA LISTA DE SIMBOLOS" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Lista inicialmente vacia: "
+              << (simbolos.estaVacia() ? "SI" : "NO") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Insertando a: " << (simbolos.insertar("a") ? "OK" : "ERROR")
+              << std::endl;
+    std::cout << "Insertando b: " << (simbolos.insertar("b") ? "OK" : "ERROR")
+              << std::endl;
+    std::cout << "Insertando c: " << (simbolos.insertar("c") ? "OK" : "ERROR")
+              << std::endl;
+    std::cout << std::endl;
+
+    simbolos.mostrar();
+    std::cout << std::endl;
+
+    std::cout << "Cantidad: " << simbolos.cantidad() << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Buscar b: " << (simbolos.existe("b") ? "ENCONTRADO" : "NO ENCONTRADO")
+              << std::endl;
+    std::cout << "Buscar x: " << (simbolos.existe("x") ? "ENCONTRADO" : "NO ENCONTRADO")
+              << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Intentando insertar b nuevamente:" << std::endl;
+    if (simbolos.insertar("b")) {
+        std::cout << "INSERTADO" << std::endl;
+    } else {
+        std::cout << "SIMBOLO DUPLICADO - NO INSERTADO" << std::endl;
+    }
+    std::cout << std::endl;
+
+    std::cout << "Eliminando b:" << std::endl;
+    std::cout << (simbolos.eliminar("b") ? "OK" : "NO EXISTE") << std::endl;
+    std::cout << std::endl;
+
+    simbolos.mostrar();
+    std::cout << std::endl;
+
+    std::cout << "Cantidad: " << simbolos.cantidad() << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Intentando eliminar x:" << std::endl;
+    std::cout << (simbolos.eliminar("x") ? "OK" : "NO EXISTE") << std::endl;
+    std::cout << std::endl;
+
+    ListaSimbolos casosBorde;
+
+    std::cout << "CASOS BORDE LISTA DE SIMBOLOS" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Eliminar en lista vacia: "
+              << (casosBorde.eliminar("z") ? "OK" : "NO EXISTE") << std::endl;
+
+    casosBorde.insertar("u");
+    casosBorde.insertar("v");
+    casosBorde.insertar("w");
+
+    std::cout << "Eliminar primer simbolo (u): "
+              << (casosBorde.eliminar("u") ? "OK" : "NO EXISTE") << std::endl;
+    std::cout << "Eliminar ultimo simbolo (w): "
+              << (casosBorde.eliminar("w") ? "OK" : "NO EXISTE") << std::endl;
+    std::cout << "Eliminar simbolo restante (v): "
+              << (casosBorde.eliminar("v") ? "OK" : "NO EXISTE") << std::endl;
+
+    std::cout << "Lista vacia despues de eliminar todo: "
+              << (casosBorde.estaVacia() ? "SI" : "NO") << std::endl;
+
+    std::cout << "Insertar despues de vaciar lista (k): "
+              << (casosBorde.insertar("k") ? "OK" : "ERROR") << std::endl;
+    std::cout << "Cantidad final casos borde: " << casosBorde.cantidad() << std::endl;
 
     return 0;
 }

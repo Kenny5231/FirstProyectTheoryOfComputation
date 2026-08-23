@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(SistemaDFA
 	src/main.cpp
 	src/estructuras/ListaEstados.cpp
+	src/estructuras/ListaSimbolos.cpp
 )
 
 target_include_directories(SistemaDFA PRIVATE include)

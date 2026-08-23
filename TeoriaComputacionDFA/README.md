@@ -34,4 +34,28 @@ Desarrollar un Sistema de Automatas Finitos Deterministas (DFA) por fases, con e
 - Crear manualmente estructuras de datos y algoritmos mediante nodos, punteros y logica propia, segun las fases del proyecto.
 
 ## Alcance de la fase actual
-Esta fase solo prepara la estructura base del proyecto. No implementa DFA, estados, transiciones, alfabetos, listas enlazadas, validadores, union de automatas ni simulacion de cadenas.
+Actualmente estan implementadas manualmente:
+
+FASE 2:
+- NodoEstado.
+- ListaEstados.
+
+FASE 3:
+- NodoSimbolo.
+- ListaSimbolos.
+- Almacenamiento manual del alfabeto.
+- Insercion manual.
+- Busqueda manual.
+- Eliminacion manual.
+- Conteo manual.
+- Recorrido manual.
+- Liberacion manual de memoria.
+
+Todavia NO estan implementados:
+- DFA completo.
+- Estado inicial.
+- Estados finales.
+- Transiciones.
+- Validacion estricta.
+- Union.
+- Simulacion de cadenas.
