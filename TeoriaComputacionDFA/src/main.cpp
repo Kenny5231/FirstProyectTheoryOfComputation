@@ -1,199 +1,103 @@
 #include <iostream>
 
-#include "estructuras/ListaEstados.h"
-#include "estructuras/ListaSimbolos.h"
-#include "estructuras/ListaTransiciones.h"
+#include "automata/DFA.h"
 
 int main() {
-    ListaEstados estados;
+    DFA dfaValido;
 
-    std::cout << "FASE 2 - PRUEBA LISTA DE ESTADOS" << std::endl;
+    dfaValido.agregarEstado("q0");
+    dfaValido.agregarEstado("q1");
+    dfaValido.agregarEstado("q2");
+
+    dfaValido.agregarSimbolo("a");
+    dfaValido.agregarSimbolo("b");
+
+    dfaValido.establecerEstadoInicial("q0");
+    dfaValido.agregarEstadoFinal("q2");
+
+    dfaValido.agregarTransicion("q0", "a", "q1");
+    dfaValido.agregarTransicion("q0", "b", "q0");
+    dfaValido.agregarTransicion("q1", "a", "q2");
+    dfaValido.agregarTransicion("q1", "b", "q0");
+    dfaValido.agregarTransicion("q2", "a", "q2");
+    dfaValido.agregarTransicion("q2", "b", "q2");
+
+    std::cout << "FASE 5 - DFA VALIDO (ESTRUCTURAL)" << std::endl;
     std::cout << std::endl;
 
-    std::cout << "Lista inicialmente vacia: "
-              << (estados.estaVacia() ? "SI" : "NO") << std::endl;
+    dfaValido.obtenerEstados().mostrar();
     std::cout << std::endl;
 
-    std::cout << "Insertando q0: " << (estados.insertar("q0") ? "OK" : "ERROR")
+    dfaValido.obtenerAlfabeto().mostrar();
+    std::cout << std::endl;
+
+    std::cout << "Estado inicial definido: "
+              << (dfaValido.tieneEstadoInicial() ? "SI" : "NO") << std::endl;
+    std::cout << "Estado inicial: " << dfaValido.obtenerEstadoInicial() << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "Estados finales:" << std::endl;
+    const NodoEstado* actualFinal = dfaValido.obtenerEstadosFinales().obtenerPrimero();
+    while (actualFinal != nullptr) {
+        std::cout << actualFinal->nombre << std::endl;
+        actualFinal = actualFinal->siguiente;
+    }
+
+    std::cout << std::endl;
+
+    dfaValido.obtenerTransiciones().mostrar();
+    std::cout << std::endl;
+
+    std::cout << "Cantidad de estados: " << dfaValido.obtenerEstados().cantidad()
               << std::endl;
-    std::cout << "Insertando q1: " << (estados.insertar("q1") ? "OK" : "ERROR")
+    std::cout << "Cantidad de simbolos: " << dfaValido.obtenerAlfabeto().cantidad()
               << std::endl;
-    std::cout << "Insertando q2: " << (estados.insertar("q2") ? "OK" : "ERROR")
-              << std::endl;
+    std::cout << "Cantidad de estados finales: "
+              << dfaValido.obtenerEstadosFinales().cantidad() << std::endl;
+    std::cout << "Cantidad de transiciones: "
+              << dfaValido.obtenerTransiciones().cantidad() << std::endl;
+
     std::cout << std::endl;
 
-    estados.mostrar();
+    DFA dfaCandidatoInvalido;
+
+    dfaCandidatoInvalido.agregarEstado("q0");
+    dfaCandidatoInvalido.agregarSimbolo("a");
+    dfaCandidatoInvalido.establecerEstadoInicial("q99");
+    dfaCandidatoInvalido.agregarEstadoFinal("q88");
+    dfaCandidatoInvalido.agregarTransicion("q0", "a", "q77");
+    dfaCandidatoInvalido.agregarTransicion("q0", "a", "q0");
+
+    std::cout << "FASE 5 - DFA CANDIDATO (SIN VALIDACION FORMAL)" << std::endl;
     std::cout << std::endl;
 
-    std::cout << "Cantidad: " << estados.cantidad() << std::endl;
+    dfaCandidatoInvalido.obtenerEstados().mostrar();
     std::cout << std::endl;
 
-    std::cout << "Buscar q1: " << (estados.existe("q1") ? "ENCONTRADO" : "NO ENCONTRADO")
-              << std::endl;
-    std::cout << "Buscar q5: " << (estados.existe("q5") ? "ENCONTRADO" : "NO ENCONTRADO")
-              << std::endl;
+    dfaCandidatoInvalido.obtenerAlfabeto().mostrar();
     std::cout << std::endl;
 
-    std::cout << "Intentando insertar q1 nuevamente:" << std::endl;
-    if (estados.insertar("q1")) {
-        std::cout << "INSERTADO" << std::endl;
-    } else {
-        std::cout << "ESTADO DUPLICADO - NO INSERTADO" << std::endl;
+    std::cout << "Estado inicial definido: "
+              << (dfaCandidatoInvalido.tieneEstadoInicial() ? "SI" : "NO") << std::endl;
+    std::cout << "Estado inicial almacenado: "
+              << dfaCandidatoInvalido.obtenerEstadoInicial() << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Estados finales almacenados:" << std::endl;
+    const NodoEstado* finalInvalido = dfaCandidatoInvalido.obtenerEstadosFinales().obtenerPrimero();
+    while (finalInvalido != nullptr) {
+        std::cout << finalInvalido->nombre << std::endl;
+        finalInvalido = finalInvalido->siguiente;
     }
     std::cout << std::endl;
 
-    std::cout << "Eliminando q1:" << std::endl;
-    std::cout << (estados.eliminar("q1") ? "OK" : "NO EXISTE") << std::endl;
+    dfaCandidatoInvalido.obtenerTransiciones().mostrar();
     std::cout << std::endl;
 
-    estados.mostrar();
-    std::cout << std::endl;
-
-    std::cout << "Cantidad: " << estados.cantidad() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Intentando eliminar q5:" << std::endl;
-    std::cout << (estados.eliminar("q5") ? "OK" : "NO EXISTE") << std::endl;
-    std::cout << std::endl;
-
-    ListaSimbolos simbolos;
-
-    std::cout << "FASE 3 - PRUEBA LISTA DE SIMBOLOS" << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Lista inicialmente vacia: "
-              << (simbolos.estaVacia() ? "SI" : "NO") << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Insertando a: " << (simbolos.insertar("a") ? "OK" : "ERROR")
+    std::cout << "Cantidad por par (q0,a) en candidato: "
+              << dfaCandidatoInvalido.obtenerTransiciones().cantidadPorPar("q0", "a")
               << std::endl;
-    std::cout << "Insertando b: " << (simbolos.insertar("b") ? "OK" : "ERROR")
-              << std::endl;
-    std::cout << "Insertando c: " << (simbolos.insertar("c") ? "OK" : "ERROR")
-              << std::endl;
-    std::cout << std::endl;
-
-    simbolos.mostrar();
-    std::cout << std::endl;
-
-    std::cout << "Cantidad: " << simbolos.cantidad() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Buscar b: " << (simbolos.existe("b") ? "ENCONTRADO" : "NO ENCONTRADO")
-              << std::endl;
-    std::cout << "Buscar x: " << (simbolos.existe("x") ? "ENCONTRADO" : "NO ENCONTRADO")
-              << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Intentando insertar b nuevamente:" << std::endl;
-    if (simbolos.insertar("b")) {
-        std::cout << "INSERTADO" << std::endl;
-    } else {
-        std::cout << "SIMBOLO DUPLICADO - NO INSERTADO" << std::endl;
-    }
-    std::cout << std::endl;
-
-    std::cout << "Eliminando b:" << std::endl;
-    std::cout << (simbolos.eliminar("b") ? "OK" : "NO EXISTE") << std::endl;
-    std::cout << std::endl;
-
-    simbolos.mostrar();
-    std::cout << std::endl;
-
-    std::cout << "Cantidad: " << simbolos.cantidad() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Intentando eliminar x:" << std::endl;
-    std::cout << (simbolos.eliminar("x") ? "OK" : "NO EXISTE") << std::endl;
-    std::cout << std::endl;
-
-    ListaSimbolos casosBorde;
-
-    std::cout << "CASOS BORDE LISTA DE SIMBOLOS" << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Eliminar en lista vacia: "
-              << (casosBorde.eliminar("z") ? "OK" : "NO EXISTE") << std::endl;
-
-    casosBorde.insertar("u");
-    casosBorde.insertar("v");
-    casosBorde.insertar("w");
-
-    std::cout << "Eliminar primer simbolo (u): "
-              << (casosBorde.eliminar("u") ? "OK" : "NO EXISTE") << std::endl;
-    std::cout << "Eliminar ultimo simbolo (w): "
-              << (casosBorde.eliminar("w") ? "OK" : "NO EXISTE") << std::endl;
-    std::cout << "Eliminar simbolo restante (v): "
-              << (casosBorde.eliminar("v") ? "OK" : "NO EXISTE") << std::endl;
-
-    std::cout << "Lista vacia despues de eliminar todo: "
-              << (casosBorde.estaVacia() ? "SI" : "NO") << std::endl;
-
-    std::cout << "Insertar despues de vaciar lista (k): "
-              << (casosBorde.insertar("k") ? "OK" : "ERROR") << std::endl;
-    std::cout << "Cantidad final casos borde: " << casosBorde.cantidad() << std::endl;
-    std::cout << std::endl;
-
-    ListaTransiciones transiciones;
-
-    std::cout << "FASE 4 - PRUEBA LISTA DE TRANSICIONES" << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Lista inicialmente vacia: "
-              << (transiciones.estaVacia() ? "SI" : "NO") << std::endl;
-    std::cout << std::endl;
-
-    transiciones.insertar("q0", "a", "q1");
-    transiciones.insertar("q0", "b", "q0");
-    transiciones.insertar("q1", "a", "q2");
-    transiciones.insertar("q1", "b", "q0");
-
-    transiciones.mostrar();
-    std::cout << std::endl;
-
-    std::cout << "Cantidad total: " << transiciones.cantidad() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Existe q0 --a--> q1: "
-              << (transiciones.existeTransicionExacta("q0", "a", "q1") ? "SI" : "NO")
-              << std::endl;
-    std::cout << "Existe q0 --a--> q5: "
-              << (transiciones.existeTransicionExacta("q0", "a", "q5") ? "SI" : "NO")
-              << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Cantidad por par (q0,a): "
-              << transiciones.cantidadPorPar("q0", "a") << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Insertando intencionalmente q0 --a--> q2" << std::endl;
-    transiciones.insertar("q0", "a", "q2");
-    std::cout << "Cantidad por par (q0,a): "
-              << transiciones.cantidadPorPar("q0", "a") << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Eliminando exactamente q0 --a--> q2: "
-              << (transiciones.eliminarTransicionExacta("q0", "a", "q2") ? "OK" : "NO EXISTE")
-              << std::endl;
-    std::cout << "Cantidad por par (q0,a): "
-              << transiciones.cantidadPorPar("q0", "a") << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Eliminar transicion inexistente q2 --b--> q1: "
-              << (transiciones.eliminarTransicionExacta("q2", "b", "q1") ? "OK" : "NO EXISTE")
-              << std::endl;
-
-    std::cout << "Eliminar primer nodo q0 --a--> q1: "
-              << (transiciones.eliminarTransicionExacta("q0", "a", "q1") ? "OK" : "NO EXISTE")
-              << std::endl;
-
-    std::cout << "Eliminar ultimo nodo q1 --b--> q0: "
-              << (transiciones.eliminarTransicionExacta("q1", "b", "q0") ? "OK" : "NO EXISTE")
-              << std::endl;
-    std::cout << std::endl;
-
-    transiciones.mostrar();
-    std::cout << "Cantidad final transiciones: " << transiciones.cantidad() << std::endl;
 
     return 0;
 }

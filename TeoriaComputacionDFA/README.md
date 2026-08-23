@@ -63,14 +63,24 @@ FASE 4:
 - Liberacion manual de memoria.
 - ListaTransiciones solo almacena informacion y no valida todavia si el DFA es formalmente correcto.
 
-Todavia NO estan implementados:
+FASE 5:
 - Clase DFA.
-- Estado inicial.
-- Estados finales dentro del DFA.
+- Representacion de Q.
+- Representacion de Sigma.
+- Representacion de delta.
+- Representacion de q0.
+- Representacion de F.
+- Composicion utilizando las estructuras manuales existentes.
+
+Todavia NO estan implementados:
 - Validacion estricta.
+- Validacion de simbolos prohibidos.
+- Comprobacion de estado inicial.
+- Comprobacion de estados finales.
 - Totalidad.
 - Determinismo como validacion.
 - Integridad de destinos.
+- Comparacion de alfabetos.
 - Union.
 - Producto cartesiano.
 - Simulacion de cadenas.
