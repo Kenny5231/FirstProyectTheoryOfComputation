@@ -12,6 +12,8 @@ add_executable(SistemaDFA
 	src/estructuras/ListaEstados.cpp
 	src/estructuras/ListaSimbolos.cpp
 	src/estructuras/ListaTransiciones.cpp
+	src/validacion/ListaErrores.cpp
+	src/validacion/ValidadorDFA.cpp
 )
 
 target_include_directories(SistemaDFA PRIVATE include)

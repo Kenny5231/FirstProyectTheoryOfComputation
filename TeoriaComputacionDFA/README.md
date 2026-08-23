@@ -37,31 +37,13 @@ Desarrollar un Sistema de Automatas Finitos Deterministas (DFA) por fases, con e
 Actualmente estan implementadas manualmente:
 
 FASE 2:
-- NodoEstado.
-- ListaEstados.
+- Estados manuales.
 
 FASE 3:
-- NodoSimbolo.
-- ListaSimbolos.
-- Almacenamiento manual del alfabeto.
-- Insercion manual.
-- Busqueda manual.
-- Eliminacion manual.
-- Conteo manual.
-- Recorrido manual.
-- Liberacion manual de memoria.
+- Alfabeto manual.
 
 FASE 4:
-- NodoTransicion.
-- ListaTransiciones.
-- Almacenamiento manual de origen, simbolo y destino.
-- Insercion manual.
-- Busqueda exacta manual.
-- Conteo manual de transiciones por (origen, simbolo).
-- Eliminacion manual.
-- Recorrido manual.
-- Liberacion manual de memoria.
-- ListaTransiciones solo almacena informacion y no valida todavia si el DFA es formalmente correcto.
+- Transiciones manuales.
 
 FASE 5:
 - Clase DFA.
@@ -72,15 +54,26 @@ FASE 5:
 - Representacion de F.
 - Composicion utilizando las estructuras manuales existentes.
 
+FASE 6:
+- NodoError.
+- ListaErrores manual.
+- ValidadorDFA.
+- No vacuidad.
+- Unicidad.
+- Simbolos invalidos.
+- Estado inicial.
+- Estados finales.
+- Integridad de origen.
+- Integridad de destino.
+- Simbolos de transiciones.
+- Totalidad de delta.
+- Deteccion de no determinismo.
+- Reporte detallado de errores.
+
 Todavia NO estan implementados:
-- Validacion estricta.
-- Validacion de simbolos prohibidos.
-- Comprobacion de estado inicial.
-- Comprobacion de estados finales.
-- Totalidad.
-- Determinismo como validacion.
-- Integridad de destinos.
 - Comparacion de alfabetos.
 - Union.
 - Producto cartesiano.
 - Simulacion de cadenas.
+- Trazabilidad.
+- Veredicto triple.

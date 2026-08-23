@@ -1,8 +1,48 @@
 #include <iostream>
 
 #include "automata/DFA.h"
+#include "validacion/ListaErrores.h"
+#include "validacion/ValidadorDFA.h"
+
+void ejecutarPrueba(const std::string& titulo, const DFA& dfa,
+                   const ValidadorDFA& validador, ListaErrores& errores) {
+    std::cout << titulo << std::endl;
+    bool esValido = validador.validar(dfa, errores);
+
+    std::cout << "Resultado: " << (esValido ? "DFA VALIDO" : "DFA INVALIDO")
+              << std::endl;
+    std::cout << "Cantidad de errores: " << errores.cantidad() << std::endl;
+
+    if (!errores.estaVacia()) {
+        errores.mostrar();
+        std::cout << "NO APTO PARA OPERACIONES POSTERIORES" << std::endl;
+    }
+
+    std::cout << std::endl;
+}
 
 int main() {
+    ValidadorDFA validador;
+    ListaErrores errores;
+
+    DFA dfaUnicidad;
+
+    bool primerEstado = dfaUnicidad.agregarEstado("q0");
+    bool estadoDuplicado = dfaUnicidad.agregarEstado("q0");
+    bool primerSimbolo = dfaUnicidad.agregarSimbolo("a");
+    bool simboloDuplicado = dfaUnicidad.agregarSimbolo("a");
+
+    std::cout << "PRUEBA DE UNICIDAD EN INSERCION" << std::endl;
+    std::cout << "Primer estado q0 insertado: " << (primerEstado ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Segundo estado q0 insertado: " << (estadoDuplicado ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Primer simbolo a insertado: " << (primerSimbolo ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Segundo simbolo a insertado: " << (simboloDuplicado ? "SI" : "NO")
+              << std::endl;
+    std::cout << std::endl;
+
     DFA dfaValido;
 
     dfaValido.agregarEstado("q0");
@@ -22,82 +62,71 @@ int main() {
     dfaValido.agregarTransicion("q2", "a", "q2");
     dfaValido.agregarTransicion("q2", "b", "q2");
 
-    std::cout << "FASE 5 - DFA VALIDO (ESTRUCTURAL)" << std::endl;
-    std::cout << std::endl;
+    ejecutarPrueba("PRUEBA 1 - DFA VALIDO", dfaValido, validador, errores);
 
-    dfaValido.obtenerEstados().mostrar();
-    std::cout << std::endl;
-
-    dfaValido.obtenerAlfabeto().mostrar();
-    std::cout << std::endl;
-
-    std::cout << "Estado inicial definido: "
-              << (dfaValido.tieneEstadoInicial() ? "SI" : "NO") << std::endl;
+    std::cout << "Confirmacion estructura DFA valido:" << std::endl;
+    std::cout << "Estados: " << dfaValido.obtenerEstados().cantidad() << std::endl;
+    std::cout << "Simbolos: " << dfaValido.obtenerAlfabeto().cantidad() << std::endl;
     std::cout << "Estado inicial: " << dfaValido.obtenerEstadoInicial() << std::endl;
-
-    std::cout << std::endl;
-
-    std::cout << "Estados finales:" << std::endl;
-    const NodoEstado* actualFinal = dfaValido.obtenerEstadosFinales().obtenerPrimero();
-    while (actualFinal != nullptr) {
-        std::cout << actualFinal->nombre << std::endl;
-        actualFinal = actualFinal->siguiente;
-    }
-
-    std::cout << std::endl;
-
-    dfaValido.obtenerTransiciones().mostrar();
-    std::cout << std::endl;
-
-    std::cout << "Cantidad de estados: " << dfaValido.obtenerEstados().cantidad()
+    std::cout << "Estados finales: " << dfaValido.obtenerEstadosFinales().cantidad()
               << std::endl;
-    std::cout << "Cantidad de simbolos: " << dfaValido.obtenerAlfabeto().cantidad()
+    std::cout << "Transiciones: " << dfaValido.obtenerTransiciones().cantidad()
               << std::endl;
-    std::cout << "Cantidad de estados finales: "
-              << dfaValido.obtenerEstadosFinales().cantidad() << std::endl;
-    std::cout << "Cantidad de transiciones: "
-              << dfaValido.obtenerTransiciones().cantidad() << std::endl;
-
+    std::cout << "Estado final vacio permitido en validacion: SI" << std::endl;
     std::cout << std::endl;
 
-    DFA dfaCandidatoInvalido;
+    DFA dfaSinFinales;
 
-    dfaCandidatoInvalido.agregarEstado("q0");
-    dfaCandidatoInvalido.agregarSimbolo("a");
-    dfaCandidatoInvalido.establecerEstadoInicial("q99");
-    dfaCandidatoInvalido.agregarEstadoFinal("q88");
-    dfaCandidatoInvalido.agregarTransicion("q0", "a", "q77");
-    dfaCandidatoInvalido.agregarTransicion("q0", "a", "q0");
+    dfaSinFinales.agregarEstado("q0");
+    dfaSinFinales.agregarEstado("q1");
+    dfaSinFinales.agregarSimbolo("a");
+    dfaSinFinales.establecerEstadoInicial("q0");
+    dfaSinFinales.agregarTransicion("q0", "a", "q1");
+    dfaSinFinales.agregarTransicion("q1", "a", "q1");
 
-    std::cout << "FASE 5 - DFA CANDIDATO (SIN VALIDACION FORMAL)" << std::endl;
-    std::cout << std::endl;
+    ejecutarPrueba("PRUEBA ADICIONAL - ESTADOS FINALES VACIOS", dfaSinFinales,
+                   validador, errores);
 
-    dfaCandidatoInvalido.obtenerEstados().mostrar();
-    std::cout << std::endl;
+    DFA dfaConErrores;
 
-    dfaCandidatoInvalido.obtenerAlfabeto().mostrar();
-    std::cout << std::endl;
+    dfaConErrores.agregarEstado("q0");
+    dfaConErrores.agregarSimbolo("a");
+    dfaConErrores.agregarSimbolo("b");
+    dfaConErrores.establecerEstadoInicial("q99");
+    dfaConErrores.agregarEstadoFinal("q88");
+    dfaConErrores.agregarTransicion("q0", "a", "q77");
+    dfaConErrores.agregarTransicion("q0", "a", "q0");
 
-    std::cout << "Estado inicial definido: "
-              << (dfaCandidatoInvalido.tieneEstadoInicial() ? "SI" : "NO") << std::endl;
-    std::cout << "Estado inicial almacenado: "
-              << dfaCandidatoInvalido.obtenerEstadoInicial() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Estados finales almacenados:" << std::endl;
-    const NodoEstado* finalInvalido = dfaCandidatoInvalido.obtenerEstadosFinales().obtenerPrimero();
-    while (finalInvalido != nullptr) {
-        std::cout << finalInvalido->nombre << std::endl;
-        finalInvalido = finalInvalido->siguiente;
-    }
-    std::cout << std::endl;
-
-    dfaCandidatoInvalido.obtenerTransiciones().mostrar();
-    std::cout << std::endl;
-
-    std::cout << "Cantidad por par (q0,a) en candidato: "
-              << dfaCandidatoInvalido.obtenerTransiciones().cantidadPorPar("q0", "a")
+    ejecutarPrueba("PRUEBA 2 - MULTIPLES ERRORES", dfaConErrores, validador, errores);
+    std::cout << "Cantidad por par (q0,a): "
+              << dfaConErrores.obtenerTransiciones().cantidadPorPar("q0", "a")
               << std::endl;
+    std::cout << std::endl;
+
+    DFA dfaOrigenSimboloInvalidos;
+
+    dfaOrigenSimboloInvalidos.agregarEstado("q0");
+    dfaOrigenSimboloInvalidos.agregarSimbolo("a");
+    dfaOrigenSimboloInvalidos.establecerEstadoInicial("q0");
+    dfaOrigenSimboloInvalidos.agregarTransicion("q0", "a", "q0");
+    dfaOrigenSimboloInvalidos.agregarTransicion("q5", "x", "q0");
+
+    ejecutarPrueba("PRUEBA 3 - ORIGEN Y SIMBOLO INVALIDOS", dfaOrigenSimboloInvalidos,
+                   validador, errores);
+
+    DFA dfaSimboloProhibido;
+
+    dfaSimboloProhibido.agregarEstado("q0");
+    dfaSimboloProhibido.agregarSimbolo("-");
+    dfaSimboloProhibido.establecerEstadoInicial("q0");
+    dfaSimboloProhibido.agregarTransicion("q0", "-", "q0");
+
+    ejecutarPrueba("PRUEBA 4 - SIMBOLO PROHIBIDO", dfaSimboloProhibido, validador,
+                   errores);
+
+    DFA dfaVacio;
+
+    ejecutarPrueba("PRUEBA 5 - DFA VACIO", dfaVacio, validador, errores);
 
     return 0;
 }
