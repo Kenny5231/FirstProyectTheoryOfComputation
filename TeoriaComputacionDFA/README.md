@@ -66,11 +66,25 @@ FASE 7:
 - Bloqueo de operacion cuando los alfabetos son diferentes.
 - Requisito de que ambos DFA hayan sido previamente validados.
 
+FASE 8:
+- NodoEstadoCompuesto.
+- ListaEstadosCompuestos.
+- Representacion explicita de pares (estadoDFA1, estadoDFA2).
+- Busqueda manual de pares.
+- Insercion manual.
+- Recorrido manual.
+- Conteo manual.
+- Liberacion manual de memoria.
+- Generacion manual de Q1 x Q2.
+- Producto cartesiano mediante dos recorridos enlazados anidados.
+
 Todavia NO estan implementados:
-- Producto cartesiano.
-- Estados compuestos.
 - Construccion del DFA Union.
 - Transiciones combinadas.
+- Transiciones del DFA Union.
+- Calculo simultaneo de delta.
+- Estados finales mediante OR.
+- DFA Union completo.
 - Criterio OR de aceptacion.
 - Union.
 - Simulacion de cadenas.
