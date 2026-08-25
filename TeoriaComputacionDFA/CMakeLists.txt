@@ -10,10 +10,12 @@ add_executable(SistemaDFA
 	src/main.cpp
 	src/automata/DFA.cpp
 	src/operaciones/CompatibilidadDFA.cpp
+	src/operaciones/GeneradorTransicionesCompuestas.cpp
 	src/operaciones/ProductoCartesiano.cpp
 	src/estructuras/ListaEstados.cpp
 	src/estructuras/ListaEstadosCompuestos.cpp
 	src/estructuras/ListaSimbolos.cpp
+	src/estructuras/ListaTransicionesCompuestas.cpp
 	src/estructuras/ListaTransiciones.cpp
 	src/validacion/ListaErrores.cpp
 	src/validacion/ValidadorDFA.cpp

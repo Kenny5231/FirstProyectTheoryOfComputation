@@ -78,15 +78,22 @@ FASE 8:
 - Generacion manual de Q1 x Q2.
 - Producto cartesiano mediante dos recorridos enlazados anidados.
 
+FASE 9:
+- NodoTransicionCompuesta.
+- ListaTransicionesCompuestas.
+- Representacion manual de transiciones entre pares.
+- Busqueda manual de delta1.
+- Busqueda manual de delta2.
+- Generacion simultanea de destinos.
+- Implementacion de deltaU((qA,qB),a) = (delta1(qA,a),delta2(qB,a)).
+- Generacion mediante recorridos manuales.
+- Verificacion de cantidad de transiciones.
+
 Todavia NO estan implementados:
 - Construccion del DFA Union.
-- Transiciones combinadas.
-- Transiciones del DFA Union.
-- Calculo simultaneo de delta.
 - Estados finales mediante OR.
 - DFA Union completo.
-- Criterio OR de aceptacion.
-- Union.
+- Tabla definitiva.
 - Simulacion de cadenas.
 - Trazabilidad.
 - Veredicto triple.
