@@ -89,11 +89,23 @@ FASE 9:
 - Generacion mediante recorridos manuales.
 - Verificacion de cantidad de transiciones.
 
+FASE 10:
+- Generacion de estados finales compuestos.
+- Reutilizacion de ListaEstadosCompuestos para FU.
+- Busqueda manual en F1 mediante ListaEstados::existe().
+- Busqueda manual en F2 mediante ListaEstados::existe().
+- Criterio de aceptacion OR: (qA,qB) ∈ FU ⇔ qA ∈ F1 OR qB ∈ F2.
+- Implementacion del criterio finalEnDFA1 || finalEnDFA2.
+- Soporte cuando F1 es vacio.
+- Soporte cuando F2 es vacio.
+- Soporte cuando ambos conjuntos finales son vacios.
+- Lista de finales compuestos generada sin crear nuevas estructuras de nodos.
+
 Todavia NO estan implementados:
-- Construccion del DFA Union.
-- Estados finales mediante OR.
-- DFA Union completo.
-- Tabla definitiva.
+- Objeto DFA Union completo.
+- Integracion de QU, Sigma, deltaU, q0U y FU.
+- Tabla definitiva de transiciones.
 - Simulacion de cadenas.
 - Trazabilidad.
 - Veredicto triple.
+- UnionDFA o DFAUnion.

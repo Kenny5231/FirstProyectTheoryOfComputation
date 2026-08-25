@@ -2,6 +2,7 @@
 
 #include "automata/DFA.h"
 #include "operaciones/CompatibilidadDFA.h"
+#include "operaciones/GeneradorEstadosFinalesCompuestos.h"
 #include "operaciones/GeneradorTransicionesCompuestas.h"
 #include "operaciones/ProductoCartesiano.h"
 #include "estructuras/ListaEstadosCompuestos.h"
@@ -226,15 +227,80 @@ void ejecutarPruebaBloqueo(const std::string& titulo, const DFA& dfa1,
     std::cout << std::endl;
 }
 
+void ejecutarPruebaPrincipalFase10(const DFA& dfa1, const DFA& dfa2,
+                                  const ValidadorDFA& validador,
+                                  const CompatibilidadDFA& compatibilidad,
+                                  const ProductoCartesiano& producto,
+                                  const GeneradorTransicionesCompuestas& generador,
+                                  const GeneradorEstadosFinalesCompuestos& generadorFinales,
+                                  ListaErrores& erroresValidacion,
+                                  ListaErrores& erroresCompatibilidad,
+                                  ListaEstadosCompuestos& estadosCompuestos,
+                                  ListaTransicionesCompuestas& transicionesCompuestas,
+                                  ListaEstadosCompuestos& estadosFinalesCompuestos) {
+    std::cout << "PRUEBA PRINCIPAL FASE 10 - ESTADOS FINALES DEL DFA UNION"
+              << std::endl;
+
+    bool bloqueoPorInvalidez = false;
+    bool bloqueoPorIncompatibilidad = false;
+
+    if (!verificarValidezYCompatibilidad(dfa1, dfa2, validador, compatibilidad,
+                                         erroresValidacion, erroresCompatibilidad,
+                                         bloqueoPorInvalidez,
+                                         bloqueoPorIncompatibilidad)) {
+        std::cout << "PRODUCTO CARTESIANO NO GENERADO." << std::endl;
+        std::cout << "TRANSICIONES COMPUESTAS NO GENERADAS." << std::endl;
+        std::cout << "ESTADOS FINALES COMPUESTOS NO GENERADOS." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    producto.generar(dfa1, dfa2, estadosCompuestos);
+    bool transicionesGeneradas =
+        generador.generar(dfa1, dfa2, estadosCompuestos, transicionesCompuestas);
+
+    if (!transicionesGeneradas) {
+        std::cout << "ERROR INTERNO: no se encontro una transicion esperada."
+                  << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    generadorFinales.generar(dfa1, dfa2, estadosCompuestos, estadosFinalesCompuestos);
+
+    std::cout << "Estados finales compuestos generados:" << std::endl;
+    estadosFinalesCompuestos.mostrar();
+
+    std::cout << "Cantidad esperada: 4" << std::endl;
+    std::cout << "Cantidad obtenida: " << estadosFinalesCompuestos.cantidad()
+              << std::endl;
+
+    std::cout << "Existe (q0,p2): "
+              << (estadosFinalesCompuestos.existe("q0", "p2") ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Existe (q1,p0): "
+              << (estadosFinalesCompuestos.existe("q1", "p0") ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Existe (q0,p0): "
+              << (estadosFinalesCompuestos.existe("q0", "p0") ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Existe (q1,p2): "
+              << (estadosFinalesCompuestos.existe("q1", "p2") ? "SI" : "NO")
+              << std::endl;
+    std::cout << std::endl;
+}
+
 int main() {
     ValidadorDFA validador;
     CompatibilidadDFA compatibilidad;
     ProductoCartesiano producto;
     GeneradorTransicionesCompuestas generador;
+    GeneradorEstadosFinalesCompuestos generadorFinales;
     ListaErrores erroresValidacion;
     ListaErrores erroresCompatibilidad;
     ListaEstadosCompuestos estadosCompuestos;
     ListaTransicionesCompuestas transicionesCompuestas;
+    ListaEstadosCompuestos estadosFinalesCompuestos;
 
     DFA dfa1Principal;
     DFA dfa2Principal;
@@ -245,6 +311,13 @@ int main() {
                                  compatibilidad, producto, generador,
                                  erroresValidacion, erroresCompatibilidad,
                                  estadosCompuestos, transicionesCompuestas);
+
+    ejecutarPruebaPrincipalFase10(dfa1Principal, dfa2Principal, validador,
+                                  compatibilidad, producto, generador,
+                                  generadorFinales, erroresValidacion,
+                                  erroresCompatibilidad, estadosCompuestos,
+                                  transicionesCompuestas,
+                                  estadosFinalesCompuestos);
 
     DFA dfaIncompatible1;
     DFA dfaIncompatible2;
