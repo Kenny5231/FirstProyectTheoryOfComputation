@@ -1,7 +1,9 @@
 #include <iostream>
 
 #include "automata/DFA.h"
+#include "automata/DFAUnion.h"
 #include "operaciones/CompatibilidadDFA.h"
+#include "operaciones/ConstructorDFAUnion.h"
 #include "operaciones/GeneradorEstadosFinalesCompuestos.h"
 #include "operaciones/GeneradorTransicionesCompuestas.h"
 #include "operaciones/ProductoCartesiano.h"
@@ -290,12 +292,104 @@ void ejecutarPruebaPrincipalFase10(const DFA& dfa1, const DFA& dfa2,
     std::cout << std::endl;
 }
 
+void ejecutarPruebaPrincipalFase11(const DFA& dfa1, const DFA& dfa2,
+                                   const ValidadorDFA& validador,
+                                   const CompatibilidadDFA& compatibilidad,
+                                   const ConstructorDFAUnion& constructorUnion,
+                                   ListaErrores& erroresValidacion,
+                                   ListaErrores& erroresCompatibilidad) {
+    std::cout << "PRUEBA PRINCIPAL FASE 11 - INTEGRACION DFA UNION COMPLETO"
+              << std::endl;
+
+    bool bloqueoPorInvalidez = false;
+    bool bloqueoPorIncompatibilidad = false;
+
+    if (!verificarValidezYCompatibilidad(dfa1, dfa2, validador, compatibilidad,
+                                         erroresValidacion, erroresCompatibilidad,
+                                         bloqueoPorInvalidez,
+                                         bloqueoPorIncompatibilidad)) {
+        std::cout << "DFA UNION NO CONSTRUIDO." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    DFAUnion dfaUnion;
+    bool construido = constructorUnion.construir(dfa1, dfa2, dfaUnion);
+
+    if (!construido) {
+        std::cout << "ERROR: no fue posible construir el DFA Union." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    std::cout << "# ==============================" << std::endl;
+    std::cout << "DFA UNION" << std::endl;
+    std::cout << "Estados QU:" << std::endl;
+    dfaUnion.obtenerEstados().mostrar();
+
+    std::cout << "Alfabeto:" << std::endl;
+    dfaUnion.obtenerAlfabeto().mostrar();
+
+    std::cout << "Estado inicial:" << std::endl;
+    if (dfaUnion.tieneEstadoInicial()) {
+        std::cout << "(" << dfaUnion.obtenerEstadoInicialDFA1() << ","
+                  << dfaUnion.obtenerEstadoInicialDFA2() << ")" << std::endl;
+    } else {
+        std::cout << "NO DEFINIDO" << std::endl;
+    }
+
+    std::cout << "Estados finales FU:" << std::endl;
+    dfaUnion.obtenerEstadosFinales().mostrar();
+
+    std::cout << "Transiciones:" << std::endl;
+    dfaUnion.obtenerTransiciones().mostrar();
+
+    std::cout << "Cantidad de estados: " << dfaUnion.obtenerEstados().cantidad()
+              << std::endl;
+    std::cout << "Cantidad de simbolos: " << dfaUnion.obtenerAlfabeto().cantidad()
+              << std::endl;
+    std::cout << "Cantidad de estados finales: "
+              << dfaUnion.obtenerEstadosFinales().cantidad() << std::endl;
+    std::cout << "Cantidad de transiciones: "
+              << dfaUnion.obtenerTransiciones().cantidad() << std::endl;
+
+    std::cout << "tieneEstadoInicial() == true: "
+              << (dfaUnion.tieneEstadoInicial() ? "SI" : "NO") << std::endl;
+    std::cout << "obtenerEstadoInicialDFA1() == q0: "
+              << (dfaUnion.obtenerEstadoInicialDFA1() == "q0" ? "SI" : "NO")
+              << std::endl;
+    std::cout << "obtenerEstadoInicialDFA2() == p0: "
+              << (dfaUnion.obtenerEstadoInicialDFA2() == "p0" ? "SI" : "NO")
+              << std::endl;
+
+    std::cout << "Existe estado (q0,p0) en QU: "
+              << (dfaUnion.obtenerEstados().existe("q0", "p0") ? "SI" : "NO")
+              << std::endl;
+    std::cout << "Existe final (q0,p2) en FU: "
+              << (dfaUnion.obtenerEstadosFinales().existe("q0", "p2") ? "SI"
+                                                                      : "NO")
+              << std::endl;
+    std::cout << "Existe final (q0,p0) en FU: "
+              << (dfaUnion.obtenerEstadosFinales().existe("q0", "p0") ? "SI"
+                                                                      : "NO")
+              << std::endl;
+
+    std::cout << "Existe (q0,p0) --a--> (q1,p1): "
+              << (dfaUnion.obtenerTransiciones().existeTransicionExacta(
+                      "q0", "p0", "a", "q1", "p1")
+                      ? "SI"
+                      : "NO")
+              << std::endl;
+    std::cout << std::endl;
+}
+
 int main() {
     ValidadorDFA validador;
     CompatibilidadDFA compatibilidad;
     ProductoCartesiano producto;
     GeneradorTransicionesCompuestas generador;
     GeneradorEstadosFinalesCompuestos generadorFinales;
+    ConstructorDFAUnion constructorUnion;
     ListaErrores erroresValidacion;
     ListaErrores erroresCompatibilidad;
     ListaEstadosCompuestos estadosCompuestos;
@@ -318,6 +412,10 @@ int main() {
                                   erroresCompatibilidad, estadosCompuestos,
                                   transicionesCompuestas,
                                   estadosFinalesCompuestos);
+
+    ejecutarPruebaPrincipalFase11(dfa1Principal, dfa2Principal, validador,
+                                  compatibilidad, constructorUnion,
+                                  erroresValidacion, erroresCompatibilidad);
 
     DFA dfaIncompatible1;
     DFA dfaIncompatible2;

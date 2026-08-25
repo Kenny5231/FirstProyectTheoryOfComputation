@@ -101,11 +101,23 @@ FASE 10:
 - Soporte cuando ambos conjuntos finales son vacios.
 - Lista de finales compuestos generada sin crear nuevas estructuras de nodos.
 
+FASE 11:
+- DFAUnion.
+- Representacion completa de MU = (QU, SigmaU, deltaU, q0U, FU).
+- QU mediante ListaEstadosCompuestos.
+- SigmaU mediante ListaSimbolos.
+- deltaU mediante ListaTransicionesCompuestas.
+- q0U mediante dos componentes explicitos (estadoInicialDFA1, estadoInicialDFA2).
+- FU mediante ListaEstadosCompuestos.
+- ConstructorDFAUnion.
+- Reutilizacion de ProductoCartesiano.
+- Reutilizacion de GeneradorTransicionesCompuestas.
+- Reutilizacion de GeneradorEstadosFinalesCompuestos.
+- Integracion completa de la operacion de union.
+
 Todavia NO estan implementados:
-- Objeto DFA Union completo.
-- Integracion de QU, Sigma, deltaU, q0U y FU.
 - Tabla definitiva de transiciones.
 - Simulacion de cadenas.
 - Trazabilidad.
 - Veredicto triple.
-- UnionDFA o DFAUnion.
+- Interfaz final.

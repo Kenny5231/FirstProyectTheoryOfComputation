@@ -9,7 +9,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(SistemaDFA
 	src/main.cpp
 	src/automata/DFA.cpp
+	src/automata/DFAUnion.cpp
 	src/operaciones/CompatibilidadDFA.cpp
+	src/operaciones/ConstructorDFAUnion.cpp
 	src/operaciones/GeneradorEstadosFinalesCompuestos.cpp
 	src/operaciones/GeneradorTransicionesCompuestas.cpp
 	src/operaciones/ProductoCartesiano.cpp
