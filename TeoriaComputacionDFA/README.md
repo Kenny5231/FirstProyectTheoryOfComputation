@@ -55,25 +55,24 @@ FASE 5:
 - Composicion utilizando las estructuras manuales existentes.
 
 FASE 6:
-- NodoError.
-- ListaErrores manual.
-- ValidadorDFA.
-- No vacuidad.
-- Unicidad.
-- Simbolos invalidos.
-- Estado inicial.
-- Estados finales.
-- Integridad de origen.
-- Integridad de destino.
-- Simbolos de transiciones.
-- Totalidad de delta.
-- Deteccion de no determinismo.
-- Reporte detallado de errores.
+- Validacion estricta completa.
+
+FASE 7:
+- Comparacion manual de alfabetos.
+- Comparacion independiente del orden.
+- Busqueda de simbolos de DFA1 en DFA2.
+- Busqueda de simbolos de DFA2 en DFA1.
+- Reporte especifico de discrepancias.
+- Bloqueo de operacion cuando los alfabetos son diferentes.
+- Requisito de que ambos DFA hayan sido previamente validados.
 
 Todavia NO estan implementados:
-- Comparacion de alfabetos.
-- Union.
 - Producto cartesiano.
+- Estados compuestos.
+- Construccion del DFA Union.
+- Transiciones combinadas.
+- Criterio OR de aceptacion.
+- Union.
 - Simulacion de cadenas.
 - Trazabilidad.
 - Veredicto triple.
