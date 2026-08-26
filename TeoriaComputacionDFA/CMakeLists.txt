@@ -16,6 +16,7 @@ add_executable(SistemaDFA
 	src/operaciones/GeneradorEstadosFinalesCompuestos.cpp
 	src/operaciones/GeneradorTransicionesCompuestas.cpp
 	src/operaciones/ProductoCartesiano.cpp
+	src/reportes/VisualizadorDFAUnion.cpp
 	src/simulacion/SimuladorDFA.cpp
 	src/simulacion/SimuladorDFAUnion.cpp
 	src/estructuras/ListaEstados.cpp

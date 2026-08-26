@@ -115,6 +115,18 @@ FASE 11:
 - Reutilizacion de GeneradorEstadosFinalesCompuestos.
 - Integracion completa de la operacion de union.
 
+FASE 12:
+- VisualizadorDFAUnion.
+- Listado de QU.
+- Listado de SigmaU.
+- Estado inicial q0U.
+- Listado de FU.
+- Cantidades del DFA Union.
+- Tabla/matriz de transiciones.
+- Marcadores de estado inicial y estado final.
+- Busqueda manual de destinos.
+- Soporte de FU vacio.
+
 FASE 13:
 - NodoSimboloCadena.
 - CadenaEntrada.
@@ -131,7 +143,6 @@ FASE 13:
 - Comprobacion de la propiedad Union = DFA1 OR DFA2.
 
 Todavia NO estan implementados:
-- Tabla definitiva de transiciones.
 - Trazabilidad completa.
 - Historial de estados.
 - Veredicto triple definitivo.

@@ -7,6 +7,7 @@
 #include "operaciones/GeneradorEstadosFinalesCompuestos.h"
 #include "operaciones/GeneradorTransicionesCompuestas.h"
 #include "operaciones/ProductoCartesiano.h"
+#include "reportes/VisualizadorDFAUnion.h"
 #include "estructuras/CadenaEntrada.h"
 #include "estructuras/ListaEstadosCompuestos.h"
 #include "estructuras/ListaTransicionesCompuestas.h"
@@ -386,6 +387,75 @@ void ejecutarPruebaPrincipalFase11(const DFA& dfa1, const DFA& dfa2,
     std::cout << std::endl;
 }
 
+void ejecutarPruebaEstadoInicialYFinalFase12(
+    const VisualizadorDFAUnion& visualizador) {
+    std::cout << "PRUEBA FASE 12 - ESTADO INICIAL Y FINAL" << std::endl;
+
+    DFAUnion dfaUnion;
+    dfaUnion.agregarEstado("q0", "p0");
+    dfaUnion.agregarSimbolo("a");
+    dfaUnion.establecerEstadoInicial("q0", "p0");
+    dfaUnion.agregarEstadoFinal("q0", "p0");
+    dfaUnion.agregarTransicion("q0", "p0", "a", "q0", "p0");
+
+    visualizador.mostrarComponentes(dfaUnion);
+    visualizador.mostrarTablaTransiciones(dfaUnion);
+    std::cout << std::endl;
+}
+
+void ejecutarPruebaFUVacioFase12(const VisualizadorDFAUnion& visualizador) {
+    std::cout << "PRUEBA FASE 12 - FU VACIO" << std::endl;
+
+    DFAUnion dfaUnion;
+    dfaUnion.agregarEstado("q0", "p0");
+    dfaUnion.agregarSimbolo("a");
+    dfaUnion.establecerEstadoInicial("q0", "p0");
+    dfaUnion.agregarTransicion("q0", "p0", "a", "q0", "p0");
+
+    visualizador.mostrarComponentes(dfaUnion);
+    visualizador.mostrarTablaTransiciones(dfaUnion);
+    std::cout << std::endl;
+}
+
+void ejecutarPruebaPrincipalFase12(const DFA& dfa1, const DFA& dfa2,
+                                   const ValidadorDFA& validador,
+                                   const CompatibilidadDFA& compatibilidad,
+                                   const ConstructorDFAUnion& constructorUnion,
+                                   ListaErrores& erroresValidacion,
+                                   ListaErrores& erroresCompatibilidad) {
+    std::cout << "PRUEBA PRINCIPAL FASE 12 - VISUALIZACION DFA UNION"
+              << std::endl;
+
+    bool bloqueoPorInvalidez = false;
+    bool bloqueoPorIncompatibilidad = false;
+
+    if (!verificarValidezYCompatibilidad(dfa1, dfa2, validador, compatibilidad,
+                                         erroresValidacion, erroresCompatibilidad,
+                                         bloqueoPorInvalidez,
+                                         bloqueoPorIncompatibilidad)) {
+        std::cout << "VISUALIZACION BLOQUEADA." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    DFAUnion dfaUnion;
+    bool construido = constructorUnion.construir(dfa1, dfa2, dfaUnion);
+
+    if (!construido) {
+        std::cout << "ERROR: no fue posible construir el DFA Union." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    VisualizadorDFAUnion visualizador;
+    visualizador.mostrarComponentes(dfaUnion);
+    visualizador.mostrarTablaTransiciones(dfaUnion);
+    std::cout << std::endl;
+
+    ejecutarPruebaEstadoInicialYFinalFase12(visualizador);
+    ejecutarPruebaFUVacioFase12(visualizador);
+}
+
 void mostrarResultadoDFA(const std::string& nombre, bool procesable,
                          bool aceptada, const std::string& estadoFinal) {
     std::cout << nombre << ": ";
@@ -559,6 +629,10 @@ int main() {
                                   estadosFinalesCompuestos);
 
     ejecutarPruebaPrincipalFase11(dfa1Principal, dfa2Principal, validador,
+                                  compatibilidad, constructorUnion,
+                                  erroresValidacion, erroresCompatibilidad);
+
+    ejecutarPruebaPrincipalFase12(dfa1Principal, dfa2Principal, validador,
                                   compatibilidad, constructorUnion,
                                   erroresValidacion, erroresCompatibilidad);
 
