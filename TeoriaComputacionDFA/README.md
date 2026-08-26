@@ -115,9 +115,25 @@ FASE 11:
 - Reutilizacion de GeneradorEstadosFinalesCompuestos.
 - Integracion completa de la operacion de union.
 
+FASE 13:
+- NodoSimboloCadena.
+- CadenaEntrada.
+- Secuencia enlazada manual de simbolos.
+- Soporte de simbolos repetidos.
+- Soporte de cadena vacia epsilon.
+- SimuladorDFA.
+- SimuladorDFAUnion.
+- Recorrido manual de delta.
+- Recorrido manual de deltaU.
+- Comprobacion de simbolos de entrada contra el alfabeto.
+- Estado final alcanzado.
+- Aceptacion y rechazo.
+- Comprobacion de la propiedad Union = DFA1 OR DFA2.
+
 Todavia NO estan implementados:
 - Tabla definitiva de transiciones.
-- Simulacion de cadenas.
-- Trazabilidad.
-- Veredicto triple.
-- Interfaz final.
+- Trazabilidad completa.
+- Historial de estados.
+- Veredicto triple definitivo.
+- Entrada interactiva definitiva.
+- Menu final.

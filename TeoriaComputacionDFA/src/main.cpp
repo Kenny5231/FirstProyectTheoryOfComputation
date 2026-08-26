@@ -7,8 +7,11 @@
 #include "operaciones/GeneradorEstadosFinalesCompuestos.h"
 #include "operaciones/GeneradorTransicionesCompuestas.h"
 #include "operaciones/ProductoCartesiano.h"
+#include "estructuras/CadenaEntrada.h"
 #include "estructuras/ListaEstadosCompuestos.h"
 #include "estructuras/ListaTransicionesCompuestas.h"
+#include "simulacion/SimuladorDFA.h"
+#include "simulacion/SimuladorDFAUnion.h"
 #include "validacion/ListaErrores.h"
 #include "validacion/ValidadorDFA.h"
 
@@ -383,6 +386,148 @@ void ejecutarPruebaPrincipalFase11(const DFA& dfa1, const DFA& dfa2,
     std::cout << std::endl;
 }
 
+void mostrarResultadoDFA(const std::string& nombre, bool procesable,
+                         bool aceptada, const std::string& estadoFinal) {
+    std::cout << nombre << ": ";
+
+    if (!procesable) {
+        std::cout << "CADENA NO PROCESABLE" << std::endl;
+        return;
+    }
+
+    std::cout << "estado final = " << estadoFinal << " | "
+              << (aceptada ? "ACEPTADA" : "RECHAZADA") << std::endl;
+}
+
+void mostrarResultadoUnion(bool procesable, bool aceptada,
+                           const std::string& estadoFinalDFA1,
+                           const std::string& estadoFinalDFA2) {
+    std::cout << "DFA Union: ";
+
+    if (!procesable) {
+        std::cout << "CADENA NO PROCESABLE" << std::endl;
+        return;
+    }
+
+    std::cout << "estado final = (" << estadoFinalDFA1 << ","
+              << estadoFinalDFA2 << ") | "
+              << (aceptada ? "ACEPTADA" : "RECHAZADA") << std::endl;
+}
+
+void ejecutarCasoSimulacion(const std::string& nombreCadena,
+                            const CadenaEntrada& cadena,
+                            const DFA& dfa1,
+                            const DFA& dfa2,
+                            const DFAUnion& dfaUnion,
+                            const SimuladorDFA& simuladorDFA,
+                            const SimuladorDFAUnion& simuladorUnion,
+                            bool comprobarPropiedadUnion) {
+    std::cout << "Cadena de prueba: " << nombreCadena << std::endl;
+    cadena.mostrar();
+
+    if (cadena.estaVacia()) {
+        std::cout << "Cadena vacia: no se buscan transiciones; se evalua q0."
+                  << std::endl;
+    }
+
+    bool aceptadaDFA1 = false;
+    bool aceptadaDFA2 = false;
+    bool aceptadaUnion = false;
+    std::string estadoFinalDFA1;
+    std::string estadoFinalDFA2;
+    std::string estadoFinalUnionDFA1;
+    std::string estadoFinalUnionDFA2;
+
+    bool procesableDFA1 =
+        simuladorDFA.simular(dfa1, cadena, aceptadaDFA1, estadoFinalDFA1);
+    bool procesableDFA2 =
+        simuladorDFA.simular(dfa2, cadena, aceptadaDFA2, estadoFinalDFA2);
+    bool procesableUnion = simuladorUnion.simular(
+        dfaUnion, cadena, aceptadaUnion, estadoFinalUnionDFA1,
+        estadoFinalUnionDFA2);
+
+    mostrarResultadoDFA("DFA 1", procesableDFA1, aceptadaDFA1, estadoFinalDFA1);
+    mostrarResultadoDFA("DFA 2", procesableDFA2, aceptadaDFA2, estadoFinalDFA2);
+    mostrarResultadoUnion(procesableUnion, aceptadaUnion, estadoFinalUnionDFA1,
+                          estadoFinalUnionDFA2);
+
+    if (!procesableDFA1 || !procesableDFA2 || !procesableUnion) {
+        std::cout << "CADENA NO PROCESABLE: el simbolo 'x' no pertenece al alfabeto."
+                  << std::endl;
+    }
+
+    if (comprobarPropiedadUnion && procesableDFA1 && procesableDFA2 &&
+        procesableUnion) {
+        bool propiedadUnion = aceptadaUnion == (aceptadaDFA1 || aceptadaDFA2);
+
+        std::cout << "Union == (DFA1 || DFA2): "
+                  << (propiedadUnion ? "SI" : "NO") << std::endl;
+    }
+
+    std::cout << std::endl;
+}
+
+void ejecutarPruebaPrincipalFase13(const DFA& dfa1, const DFA& dfa2,
+                                   const ValidadorDFA& validador,
+                                   const CompatibilidadDFA& compatibilidad,
+                                   const ConstructorDFAUnion& constructorUnion,
+                                   ListaErrores& erroresValidacion,
+                                   ListaErrores& erroresCompatibilidad) {
+    std::cout << "PRUEBA PRINCIPAL FASE 13 - SIMULACION DE CADENAS"
+              << std::endl;
+
+    bool bloqueoPorInvalidez = false;
+    bool bloqueoPorIncompatibilidad = false;
+
+    if (!verificarValidezYCompatibilidad(dfa1, dfa2, validador, compatibilidad,
+                                         erroresValidacion, erroresCompatibilidad,
+                                         bloqueoPorInvalidez,
+                                         bloqueoPorIncompatibilidad)) {
+        std::cout << "SIMULACION BLOQUEADA." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    DFAUnion dfaUnion;
+    bool construido = constructorUnion.construir(dfa1, dfa2, dfaUnion);
+
+    if (!construido) {
+        std::cout << "ERROR: no fue posible construir el DFA Union." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    SimuladorDFA simuladorDFA;
+    SimuladorDFAUnion simuladorUnion;
+
+    CadenaEntrada cadenaA;
+    cadenaA.agregarSimbolo("a");
+    ejecutarCasoSimulacion("a", cadenaA, dfa1, dfa2, dfaUnion, simuladorDFA,
+                           simuladorUnion, true);
+
+    CadenaEntrada cadenaAA;
+    cadenaAA.agregarSimbolo("a");
+    cadenaAA.agregarSimbolo("a");
+    ejecutarCasoSimulacion("aa", cadenaAA, dfa1, dfa2, dfaUnion, simuladorDFA,
+                           simuladorUnion, true);
+
+    CadenaEntrada cadenaB;
+    cadenaB.agregarSimbolo("b");
+    ejecutarCasoSimulacion("b", cadenaB, dfa1, dfa2, dfaUnion, simuladorDFA,
+                           simuladorUnion, true);
+
+    CadenaEntrada cadenaVacia;
+    ejecutarCasoSimulacion("epsilon", cadenaVacia, dfa1, dfa2, dfaUnion,
+                           simuladorDFA, simuladorUnion, true);
+
+    CadenaEntrada cadenaInvalida;
+    cadenaInvalida.agregarSimbolo("a");
+    cadenaInvalida.agregarSimbolo("x");
+    cadenaInvalida.agregarSimbolo("b");
+    ejecutarCasoSimulacion("a x b", cadenaInvalida, dfa1, dfa2, dfaUnion,
+                           simuladorDFA, simuladorUnion, false);
+}
+
 int main() {
     ValidadorDFA validador;
     CompatibilidadDFA compatibilidad;
@@ -414,6 +559,10 @@ int main() {
                                   estadosFinalesCompuestos);
 
     ejecutarPruebaPrincipalFase11(dfa1Principal, dfa2Principal, validador,
+                                  compatibilidad, constructorUnion,
+                                  erroresValidacion, erroresCompatibilidad);
+
+    ejecutarPruebaPrincipalFase13(dfa1Principal, dfa2Principal, validador,
                                   compatibilidad, constructorUnion,
                                   erroresValidacion, erroresCompatibilidad);
 
