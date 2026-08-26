@@ -11,12 +11,15 @@ add_executable(SistemaDFA
 	src/automata/DFA.cpp
 	src/automata/DFAUnion.cpp
 	src/estructuras/CadenaEntrada.cpp
+	src/estructuras/ListaPasosDFA.cpp
+	src/estructuras/ListaPasosDFAUnion.cpp
 	src/operaciones/CompatibilidadDFA.cpp
 	src/operaciones/ConstructorDFAUnion.cpp
 	src/operaciones/GeneradorEstadosFinalesCompuestos.cpp
 	src/operaciones/GeneradorTransicionesCompuestas.cpp
 	src/operaciones/ProductoCartesiano.cpp
 	src/reportes/VisualizadorDFAUnion.cpp
+	src/reportes/VisualizadorTrazabilidad.cpp
 	src/simulacion/SimuladorDFA.cpp
 	src/simulacion/SimuladorDFAUnion.cpp
 	src/estructuras/ListaEstados.cpp

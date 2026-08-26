@@ -5,6 +5,7 @@
 
 #include "automata/DFA.h"
 #include "estructuras/CadenaEntrada.h"
+#include "estructuras/ListaPasosDFA.h"
 
 class SimuladorDFA {
 private:
@@ -18,6 +19,11 @@ public:
                  const CadenaEntrada& cadena,
                  bool& aceptada,
                  std::string& estadoFinal) const;
+    bool simularConTraza(const DFA& dfa,
+                         const CadenaEntrada& cadena,
+                         ListaPasosDFA& trazabilidad,
+                         bool& aceptada,
+                         std::string& estadoFinal) const;
 };
 
 #endif

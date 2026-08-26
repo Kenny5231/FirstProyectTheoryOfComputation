@@ -142,9 +142,21 @@ FASE 13:
 - Aceptacion y rechazo.
 - Comprobacion de la propiedad Union = DFA1 OR DFA2.
 
-Todavia NO estan implementados:
+FASE 14:
+- NodoPasoDFA.
+- ListaPasosDFA.
+- NodoPasoDFAUnion.
+- ListaPasosDFAUnion.
+- simularConTraza en DFA.
+- simularConTraza en DFAUnion.
+- Registro de origen, simbolo y destino.
 - Trazabilidad completa.
-- Historial de estados.
+- Visualizacion paso a paso.
+- Soporte de cadena vacia.
+- Soporte de simulacion detenida por simbolo invalido.
+
+Todavia NO estan implementados:
+- Veredicto triple integrado.
 - Veredicto triple definitivo.
 - Entrada interactiva definitiva.
 - Menu final.

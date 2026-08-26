@@ -30,6 +30,38 @@ bool SimuladorDFA::simular(const DFA& dfa,
     return true;
 }
 
+bool SimuladorDFA::simularConTraza(const DFA& dfa,
+                                   const CadenaEntrada& cadena,
+                                   ListaPasosDFA& trazabilidad,
+                                   bool& aceptada,
+                                   std::string& estadoFinal) const {
+    trazabilidad.limpiar();
+    aceptada = false;
+    std::string estadoActual = dfa.obtenerEstadoInicial();
+    const NodoSimboloCadena* simboloActual = cadena.obtenerPrimero();
+
+    while (simboloActual != nullptr) {
+        if (!dfa.obtenerAlfabeto().existe(simboloActual->simbolo)) {
+            estadoFinal = estadoActual;
+            return false;
+        }
+
+        std::string destino;
+        if (!buscarDestino(dfa, estadoActual, simboloActual->simbolo, destino)) {
+            estadoFinal = estadoActual;
+            return false;
+        }
+
+        trazabilidad.agregarPaso(estadoActual, simboloActual->simbolo, destino);
+        estadoActual = destino;
+        simboloActual = simboloActual->siguiente;
+    }
+
+    estadoFinal = estadoActual;
+    aceptada = dfa.obtenerEstadosFinales().existe(estadoActual);
+    return true;
+}
+
 bool SimuladorDFA::buscarDestino(const DFA& dfa,
                                  const std::string& origen,
                                  const std::string& simbolo,

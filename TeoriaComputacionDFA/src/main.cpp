@@ -8,8 +8,11 @@
 #include "operaciones/GeneradorTransicionesCompuestas.h"
 #include "operaciones/ProductoCartesiano.h"
 #include "reportes/VisualizadorDFAUnion.h"
+#include "reportes/VisualizadorTrazabilidad.h"
 #include "estructuras/CadenaEntrada.h"
 #include "estructuras/ListaEstadosCompuestos.h"
+#include "estructuras/ListaPasosDFA.h"
+#include "estructuras/ListaPasosDFAUnion.h"
 #include "estructuras/ListaTransicionesCompuestas.h"
 #include "simulacion/SimuladorDFA.h"
 #include "simulacion/SimuladorDFAUnion.h"
@@ -598,6 +601,123 @@ void ejecutarPruebaPrincipalFase13(const DFA& dfa1, const DFA& dfa2,
                            simuladorDFA, simuladorUnion, false);
 }
 
+void ejecutarCasoTrazabilidad(const std::string& nombreCadena,
+                              const CadenaEntrada& cadena,
+                              const DFA& dfa1,
+                              const DFA& dfa2,
+                              const DFAUnion& dfaUnion,
+                              const SimuladorDFA& simuladorDFA,
+                              const SimuladorDFAUnion& simuladorUnion,
+                              const VisualizadorTrazabilidad& visualizador) {
+    std::cout << "Cadena de prueba con traza: " << nombreCadena << std::endl;
+    cadena.mostrar();
+
+    ListaPasosDFA pasosDFA1;
+    ListaPasosDFA pasosDFA2;
+    ListaPasosDFAUnion pasosUnion;
+    bool aceptadaDFA1 = false;
+    bool aceptadaDFA2 = false;
+    bool aceptadaUnion = false;
+    std::string estadoFinalDFA1;
+    std::string estadoFinalDFA2;
+    std::string estadoFinalUnionDFA1;
+    std::string estadoFinalUnionDFA2;
+
+    bool procesableDFA1 = simuladorDFA.simularConTraza(
+        dfa1, cadena, pasosDFA1, aceptadaDFA1, estadoFinalDFA1);
+    bool procesableDFA2 = simuladorDFA.simularConTraza(
+        dfa2, cadena, pasosDFA2, aceptadaDFA2, estadoFinalDFA2);
+    bool procesableUnion = simuladorUnion.simularConTraza(
+        dfaUnion, cadena, pasosUnion, aceptadaUnion, estadoFinalUnionDFA1,
+        estadoFinalUnionDFA2);
+
+    visualizador.mostrarDFA(dfa1, pasosDFA1, procesableDFA1, aceptadaDFA1,
+                            estadoFinalDFA1);
+    visualizador.mostrarDFA(dfa2, pasosDFA2, procesableDFA2, aceptadaDFA2,
+                            estadoFinalDFA2);
+    visualizador.mostrarDFAUnion(dfaUnion, pasosUnion, procesableUnion,
+                                 aceptadaUnion, estadoFinalUnionDFA1,
+                                 estadoFinalUnionDFA2);
+
+    std::cout << "Cantidad pasos DFA 1: " << pasosDFA1.cantidad() << std::endl;
+    std::cout << "Cantidad pasos DFA 2: " << pasosDFA2.cantidad() << std::endl;
+    std::cout << "Cantidad pasos DFA Union: " << pasosUnion.cantidad()
+              << std::endl;
+
+    if (!procesableDFA1 || !procesableDFA2 || !procesableUnion) {
+        std::cout << "La simulacion se detuvo antes de crear pasos falsos."
+                  << std::endl;
+    }
+
+    std::cout << std::endl;
+}
+
+void ejecutarPruebaPrincipalFase14(const DFA& dfa1, const DFA& dfa2,
+                                   const ValidadorDFA& validador,
+                                   const CompatibilidadDFA& compatibilidad,
+                                   const ConstructorDFAUnion& constructorUnion,
+                                   ListaErrores& erroresValidacion,
+                                   ListaErrores& erroresCompatibilidad) {
+    std::cout << "PRUEBA PRINCIPAL FASE 14 - TRAZABILIDAD PASO A PASO"
+              << std::endl;
+
+    bool bloqueoPorInvalidez = false;
+    bool bloqueoPorIncompatibilidad = false;
+
+    if (!verificarValidezYCompatibilidad(dfa1, dfa2, validador, compatibilidad,
+                                         erroresValidacion, erroresCompatibilidad,
+                                         bloqueoPorInvalidez,
+                                         bloqueoPorIncompatibilidad)) {
+        std::cout << "TRAZABILIDAD BLOQUEADA." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    DFAUnion dfaUnion;
+    bool construido = constructorUnion.construir(dfa1, dfa2, dfaUnion);
+
+    if (!construido) {
+        std::cout << "ERROR: no fue posible construir el DFA Union." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    SimuladorDFA simuladorDFA;
+    SimuladorDFAUnion simuladorUnion;
+    VisualizadorTrazabilidad visualizador;
+
+    CadenaEntrada cadenaAAB;
+    cadenaAAB.agregarSimbolo("a");
+    cadenaAAB.agregarSimbolo("a");
+    cadenaAAB.agregarSimbolo("b");
+    ejecutarCasoTrazabilidad("aab", cadenaAAB, dfa1, dfa2, dfaUnion,
+                             simuladorDFA, simuladorUnion, visualizador);
+
+    CadenaEntrada cadenaAA;
+    cadenaAA.agregarSimbolo("a");
+    cadenaAA.agregarSimbolo("a");
+    ejecutarCasoTrazabilidad("aa", cadenaAA, dfa1, dfa2, dfaUnion,
+                             simuladorDFA, simuladorUnion, visualizador);
+
+    CadenaEntrada cadenaVacia;
+    ejecutarCasoTrazabilidad("epsilon", cadenaVacia, dfa1, dfa2, dfaUnion,
+                             simuladorDFA, simuladorUnion, visualizador);
+
+    CadenaEntrada cadenaInvalida;
+    cadenaInvalida.agregarSimbolo("a");
+    cadenaInvalida.agregarSimbolo("x");
+    cadenaInvalida.agregarSimbolo("b");
+    ejecutarCasoTrazabilidad("a x b", cadenaInvalida, dfa1, dfa2, dfaUnion,
+                             simuladorDFA, simuladorUnion, visualizador);
+
+    CadenaEntrada cadenaRepetida;
+    cadenaRepetida.agregarSimbolo("a");
+    cadenaRepetida.agregarSimbolo("a");
+    cadenaRepetida.agregarSimbolo("a");
+    ejecutarCasoTrazabilidad("a a a", cadenaRepetida, dfa1, dfa2, dfaUnion,
+                             simuladorDFA, simuladorUnion, visualizador);
+}
+
 int main() {
     ValidadorDFA validador;
     CompatibilidadDFA compatibilidad;
@@ -637,6 +757,10 @@ int main() {
                                   erroresValidacion, erroresCompatibilidad);
 
     ejecutarPruebaPrincipalFase13(dfa1Principal, dfa2Principal, validador,
+                                  compatibilidad, constructorUnion,
+                                  erroresValidacion, erroresCompatibilidad);
+
+    ejecutarPruebaPrincipalFase14(dfa1Principal, dfa2Principal, validador,
                                   compatibilidad, constructorUnion,
                                   erroresValidacion, erroresCompatibilidad);
 
