@@ -89,11 +89,137 @@ FASE 9:
 - Generacion mediante recorridos manuales.
 - Verificacion de cantidad de transiciones.
 
-Todavia NO estan implementados:
-- Construccion del DFA Union.
-- Estados finales mediante OR.
-- DFA Union completo.
-- Tabla definitiva.
-- Simulacion de cadenas.
-- Trazabilidad.
+FASE 10:
+- Generacion de estados finales compuestos.
+- Reutilizacion de ListaEstadosCompuestos para FU.
+- Busqueda manual en F1 mediante ListaEstados::existe().
+- Busqueda manual en F2 mediante ListaEstados::existe().
+- Criterio de aceptacion OR: (qA,qB) ∈ FU ⇔ qA ∈ F1 OR qB ∈ F2.
+- Implementacion del criterio finalEnDFA1 || finalEnDFA2.
+- Soporte cuando F1 es vacio.
+- Soporte cuando F2 es vacio.
+- Soporte cuando ambos conjuntos finales son vacios.
+- Lista de finales compuestos generada sin crear nuevas estructuras de nodos.
+
+FASE 11:
+- DFAUnion.
+- Representacion completa de MU = (QU, SigmaU, deltaU, q0U, FU).
+- QU mediante ListaEstadosCompuestos.
+- SigmaU mediante ListaSimbolos.
+- deltaU mediante ListaTransicionesCompuestas.
+- q0U mediante dos componentes explicitos (estadoInicialDFA1, estadoInicialDFA2).
+- FU mediante ListaEstadosCompuestos.
+- ConstructorDFAUnion.
+- Reutilizacion de ProductoCartesiano.
+- Reutilizacion de GeneradorTransicionesCompuestas.
+- Reutilizacion de GeneradorEstadosFinalesCompuestos.
+- Integracion completa de la operacion de union.
+
+FASE 12:
+- VisualizadorDFAUnion.
+- Listado de QU.
+- Listado de SigmaU.
+- Estado inicial q0U.
+- Listado de FU.
+- Cantidades del DFA Union.
+- Tabla/matriz de transiciones.
+- Marcadores de estado inicial y estado final.
+- Busqueda manual de destinos.
+- Soporte de FU vacio.
+
+FASE 13:
+- NodoSimboloCadena.
+- CadenaEntrada.
+- Secuencia enlazada manual de simbolos.
+- Soporte de simbolos repetidos.
+- Soporte de cadena vacia epsilon.
+- SimuladorDFA.
+- SimuladorDFAUnion.
+- Recorrido manual de delta.
+- Recorrido manual de deltaU.
+- Comprobacion de simbolos de entrada contra el alfabeto.
+- Estado final alcanzado.
+- Aceptacion y rechazo.
+- Comprobacion de la propiedad Union = DFA1 OR DFA2.
+
+FASE 14:
+- NodoPasoDFA.
+- ListaPasosDFA.
+- NodoPasoDFAUnion.
+- ListaPasosDFAUnion.
+- simularConTraza en DFA.
+- simularConTraza en DFAUnion.
+- Registro de origen, simbolo y destino.
+- Trazabilidad completa.
+- Visualizacion paso a paso.
+- Soporte de cadena vacia.
+- Soporte de simulacion detenida por simbolo invalido.
+
+FASE 15:
+- ResultadoTriple.
+- EvaluadorTriple.
+- Evaluacion simultanea DFA1/DFA2/DFAUnion.
 - Veredicto triple.
+- Estados finales alcanzados.
+- Diferenciacion entre RECHAZADA y NO PROCESABLE.
+- Deteccion manual del simbolo invalido real.
+- Comprobacion Union = DFA1 OR DFA2.
+
+## Interfaz grafica
+El producto final utilizara Qt 6 + Qt Widgets.
+
+Las siguientes fases estaran orientadas a construir la interfaz grafica.
+Qt se utilizara para presentacion e interaccion con el usuario.
+Qt NO sustituira las estructuras manuales del proyecto.
+No se utilizaran colecciones Qt para almacenar los automatas.
+
+Todavia NO estan implementados:
+- Entrada interactiva definitiva.
+- Menu final.
+
+## FASE 16 - Base de interfaz grafica
+- Qt 6 y Qt Widgets.
+- `MainWindow` y `QApplication`.
+- Navegacion lateral mediante `QStackedWidget`.
+- Paginas de Inicio, DFA 1, DFA 2, DFA Union y Prueba.
+- Diseno adaptable mediante layouts, sin posicionamiento absoluto.
+- Separacion entre la interfaz grafica y la logica del automata.
+- Respaldo del main de consola en `src/pruebas/main_consola_fases1_15.cpp`.
+- Motor existente de las fases 1 a 15 preservado.
+
+La interfaz grafica de la Fase 17 permite construir DFA 1 y DFA 2. La validacion formal desde GUI comienza en la Fase 18.
+
+## FASE 17 - Editor grafico de DFA
+- `EditorDFAWidget` reutilizable para DFA 1 y DFA 2.
+- DFA 1 y DFA 2 almacenados como miembros independientes de `MainWindow`.
+- Ingreso grafico de estados, simbolos, estado inicial, estados finales y transiciones.
+- Tabla visual de transiciones reconstruida desde `ListaTransiciones`.
+- Combos y tabla utilizados solamente como presentacion y seleccion.
+- Actualizacion de la interfaz mediante recorridos manuales de las listas enlazadas.
+- Sin colecciones STL o Qt para almacenar DFA.
+- Motor logico de las fases anteriores preservado.
+
+La validacion formal desde la interfaz grafica se implementara en la Fase 18.
+
+## FASE 18 - Validacion grafica
+- Boton `Validar DFA` conectado directamente con `ValidadorDFA`.
+- Uso de `ListaErrores` y recorrido manual de sus nodos.
+- Panel grafico para mostrar multiples errores simultaneamente.
+- Estados de interfaz `Pendiente`, `DFA valido` y `DFA invalido`.
+- Invalidacion automatica despues de modificar el DFA.
+- El conjunto de estados finales vacio sigue permitido por el validador.
+- La GUI no duplica reglas de validacion ni almacena los errores en colecciones Qt.
+
+La union grafica se implementa en la Fase 19.
+
+## FASE 19 - DFA Union grafico
+- `VistaUnionDFAWidget` para construir y mostrar la union.
+- Prevalidacion mediante `EditorDFAWidget::esDFAValido()`.
+- Comparacion de alfabetos mediante `CompatibilidadDFA`.
+- Construccion mediante `ConstructorDFAUnion`.
+- Propiedad segura y regenerable de `DFAUnion`.
+- Visualizacion manual de QU, ΣU, q0U, FU y la matriz de transiciones.
+- Invalidacion automatica cuando se modifica DFA 1 o DFA 2.
+- `QTableWidget` utilizado solamente como presentacion.
+
+La prueba grafica de cadenas se implementara en la Fase 20.
