@@ -187,4 +187,39 @@ Todavia NO estan implementados:
 - Respaldo del main de consola en `src/pruebas/main_consola_fases1_15.cpp`.
 - Motor existente de las fases 1 a 15 preservado.
 
-La interfaz grafica aun no edita los DFA. Esa funcionalidad comienza en la Fase 17.
+La interfaz grafica de la Fase 17 permite construir DFA 1 y DFA 2. La validacion formal desde GUI comienza en la Fase 18.
+
+## FASE 17 - Editor grafico de DFA
+- `EditorDFAWidget` reutilizable para DFA 1 y DFA 2.
+- DFA 1 y DFA 2 almacenados como miembros independientes de `MainWindow`.
+- Ingreso grafico de estados, simbolos, estado inicial, estados finales y transiciones.
+- Tabla visual de transiciones reconstruida desde `ListaTransiciones`.
+- Combos y tabla utilizados solamente como presentacion y seleccion.
+- Actualizacion de la interfaz mediante recorridos manuales de las listas enlazadas.
+- Sin colecciones STL o Qt para almacenar DFA.
+- Motor logico de las fases anteriores preservado.
+
+La validacion formal desde la interfaz grafica se implementara en la Fase 18.
+
+## FASE 18 - Validacion grafica
+- Boton `Validar DFA` conectado directamente con `ValidadorDFA`.
+- Uso de `ListaErrores` y recorrido manual de sus nodos.
+- Panel grafico para mostrar multiples errores simultaneamente.
+- Estados de interfaz `Pendiente`, `DFA valido` y `DFA invalido`.
+- Invalidacion automatica despues de modificar el DFA.
+- El conjunto de estados finales vacio sigue permitido por el validador.
+- La GUI no duplica reglas de validacion ni almacena los errores en colecciones Qt.
+
+La union grafica se implementa en la Fase 19.
+
+## FASE 19 - DFA Union grafico
+- `VistaUnionDFAWidget` para construir y mostrar la union.
+- Prevalidacion mediante `EditorDFAWidget::esDFAValido()`.
+- Comparacion de alfabetos mediante `CompatibilidadDFA`.
+- Construccion mediante `ConstructorDFAUnion`.
+- Propiedad segura y regenerable de `DFAUnion`.
+- Visualizacion manual de QU, ΣU, q0U, FU y la matriz de transiciones.
+- Invalidacion automatica cuando se modifica DFA 1 o DFA 2.
+- `QTableWidget` utilizado solamente como presentacion.
+
+La prueba grafica de cadenas se implementara en la Fase 20.

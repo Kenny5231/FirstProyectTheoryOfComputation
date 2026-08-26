@@ -4,6 +4,10 @@
 #include <QMainWindow>
 #include <QString>
 
+#include "automata/DFA.h"
+
+class EditorDFAWidget;
+class VistaUnionDFAWidget;
 class QStackedWidget;
 class QPushButton;
 
@@ -29,6 +33,11 @@ private:
     QPushButton* botonDFA2;
     QPushButton* botonUnion;
     QPushButton* botonPruebas;
+    DFA dfa1;
+    DFA dfa2;
+    EditorDFAWidget* editorDFA1;
+    EditorDFAWidget* editorDFA2;
+    VistaUnionDFAWidget* vistaUnionDFA;
 };
 
 #endif

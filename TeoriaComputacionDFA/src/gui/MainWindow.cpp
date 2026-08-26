@@ -1,10 +1,14 @@
 #include "gui/MainWindow.h"
 
+#include "gui/EditorDFAWidget.h"
+#include "gui/VistaUnionDFAWidget.h"
+
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QStackedWidget>
 #include <QStyle>
 #include <QVBoxLayout>
@@ -51,7 +55,12 @@ MainWindow::MainWindow(QWidget* parent)
       botonDFA1(nullptr),
       botonDFA2(nullptr),
       botonUnion(nullptr),
-      botonPruebas(nullptr) {
+            botonPruebas(nullptr),
+            dfa1(),
+            dfa2(),
+            editorDFA1(nullptr),
+            editorDFA2(nullptr),
+            vistaUnionDFA(nullptr) {
     configurarVentana();
     crearInterfaz();
     conectarEventos();
@@ -99,6 +108,56 @@ void MainWindow::configurarVentana() {
         "QPushButton#primaryButton { background: #2563EB; color: #FFFFFF; border: 0; "
         "border-radius: 8px; padding: 10px 16px; font-weight: 700; }"
         "QPushButton#primaryButton:disabled { background: #CBD5E1; color: #64748B; }"
+        "QFrame#editorCard { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; }"
+        "QFrame#progressCard { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; }"
+        "QLabel#editorCardTitle { color: #0F172A; font-size: 14px; font-weight: 700; }"
+        "QLabel#editorSymbol { color: #2563EB; font-size: 18px; font-weight: 700; }"
+        "QLabel#editorList { color: #475569; font-size: 13px; }"
+        "QLabel#progressTitle, QLabel#fieldLabel { color: #64748B; font-size: 10px; font-weight: 700; }"
+        "QLabel#progressText { color: #0F172A; font-size: 12px; font-weight: 600; }"
+        "QLabel#editorMessage { color: #15803D; font-size: 12px; font-weight: 600; }"
+        "QLabel#editorMessage[error=\"true\"] { color: #DC2626; }"
+        "QComboBox { background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; "
+        "padding: 8px 10px; min-height: 20px; color: #0F172A; }"
+        "QComboBox:focus { border: 1px solid #2563EB; }"
+        "QComboBox:hover { border: 1px solid #94A3B8; }"
+        "QComboBox QAbstractItemView { background-color: #FFFFFF; color: #0F172A; "
+        "border: 1px solid #CBD5E1; outline: 0; selection-background-color: #DBEAFE; "
+        "selection-color: #0F172A; }"
+        "QComboBox QAbstractItemView::item { min-height: 32px; padding: 6px 10px; "
+        "color: #0F172A; background-color: #FFFFFF; }"
+        "QComboBox QAbstractItemView::item:selected { background-color: #DBEAFE; "
+        "color: #1E3A8A; }"
+        "QPushButton#editorActionButton { background: #2563EB; color: #FFFFFF; border: 0; "
+        "border-radius: 8px; padding: 9px 13px; font-weight: 700; }"
+        "QPushButton#editorActionButton:hover { background: #1D4ED8; }"
+        "QPushButton#editorActionButton:disabled { background: #CBD5E1; color: #64748B; }"
+        "QTableWidget { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; "
+        "gridline-color: #E2E8F0; color: #334155; }"
+        "QHeaderView::section { background: #F8FAFC; border: 0; border-bottom: 1px solid #E2E8F0; "
+        "padding: 8px; color: #64748B; font-size: 11px; font-weight: 700; }"
+        "QFrame#validationCard { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; }"
+        "QLabel#validationTitle { color: #64748B; font-size: 10px; font-weight: 700; }"
+        "QLabel#validationStatus { color: #2563EB; font-size: 15px; font-weight: 700; }"
+        "QLabel#validationStatus[valid=\"true\"] { color: #16A34A; }"
+        "QLabel#validationStatus[invalid=\"true\"] { color: #DC2626; }"
+        "QLabel#validationDetail, QLabel#validationCount { color: #64748B; font-size: 12px; }"
+        "QLabel#validationCount { font-weight: 700; }"
+        "QPushButton#validationButton { background: #2563EB; color: #FFFFFF; border: 0; "
+        "border-radius: 8px; padding: 10px 16px; font-weight: 700; }"
+        "QPushButton#validationButton:hover { background: #1D4ED8; }"
+        "QPlainTextEdit#errorPanel { background: #FEF2F2; color: #991B1B; "
+        "border: 1px solid #FECACA; border-radius: 8px; padding: 8px; }"
+        "QFrame#unionRequirements, QFrame#unionCard { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; }"
+        "QLabel#unionSectionTitle, QLabel#unionCardTitle { color: #64748B; font-size: 10px; font-weight: 700; }"
+        "QLabel#unionRequirementName { color: #0F172A; font-size: 13px; font-weight: 600; }"
+        "QLabel#unionPending { color: #64748B; font-size: 13px; }"
+        "QLabel#unionPending[valid=\"true\"] { color: #16A34A; font-weight: 700; }"
+        "QLabel#unionMessage { color: #2563EB; font-size: 13px; font-weight: 600; }"
+        "QLabel#unionMessage[error=\"true\"] { color: #DC2626; }"
+        "QLabel#unionCardText, QLabel#unionLongText { color: #334155; font-size: 13px; }"
+        "QTableWidget#unionTable { background: #FFFFFF; border: 1px solid #E2E8F0; "
+        "gridline-color: #E2E8F0; color: #334155; }"
     );
 }
 
@@ -156,7 +215,6 @@ QWidget* MainWindow::crearSidebar() {
     layout->addWidget(crearEtiqueta("Laboratorio académico", "brandSub"));
     layout->addSpacing(24);
     layout->addWidget(crearEtiqueta("NAVEGACIÓN", "sectionLabel"));
-
     botonInicio = new QPushButton("Inicio", sidebar);
     botonDFA1 = new QPushButton("DFA 1", sidebar);
     botonDFA2 = new QPushButton("DFA 2", sidebar);
@@ -215,50 +273,28 @@ QWidget* MainWindow::crearPaginaInicio() {
 }
 
 QWidget* MainWindow::crearPaginaDFA(const QString& titulo, const QString& subtitulo) {
-    QWidget* pagina = new QWidget;
-    QVBoxLayout* layout = new QVBoxLayout(pagina);
-    layout->setContentsMargins(32, 28, 32, 28);
-    layout->setSpacing(10);
-    layout->addWidget(crearEtiqueta("CONFIGURACIÓN", "eyebrow"));
-    layout->addWidget(crearEtiqueta(titulo, "pageTitle"));
-    layout->addWidget(crearEtiqueta(subtitulo, "pageSub"));
-    layout->addSpacing(14);
-    QHBoxLayout* fila = new QHBoxLayout;
-    fila->setSpacing(12);
-    fila->addWidget(crearTarjeta("Estados\nQ", "Sin definir\nNo se han agregado estados."));
-    fila->addWidget(crearTarjeta("Alfabeto\nΣ", "Sin definir\nNo se han agregado símbolos."));
-    fila->addWidget(crearTarjeta("Estado inicial\nq₀", "Pendiente\nAún no se ha seleccionado."));
-    layout->addLayout(fila);
-    QHBoxLayout* filaDos = new QHBoxLayout;
-    filaDos->setSpacing(12);
-    filaDos->addWidget(crearTarjeta("Estados finales\nF", "Pendiente\nNo se han definido estados finales."));
-    filaDos->addWidget(crearTarjeta("Transiciones δ", "Pendiente\nLas transiciones se configurarán próximamente."));
-    filaDos->addStretch();
-    layout->addLayout(filaDos);
-    layout->addStretch(1);
-    return pagina;
+    QScrollArea* scroll = new QScrollArea;
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    if (titulo == "DFA 1") {
+        editorDFA1 = new EditorDFAWidget(dfa1, titulo, subtitulo);
+        scroll->setWidget(editorDFA1);
+    } else {
+        editorDFA2 = new EditorDFAWidget(dfa2, titulo, subtitulo);
+        scroll->setWidget(editorDFA2);
+    }
+    return scroll;
 }
 
 QWidget* MainWindow::crearPaginaUnion() {
-    QWidget* pagina = new QWidget;
-    QVBoxLayout* layout = new QVBoxLayout(pagina);
-    layout->setContentsMargins(32, 28, 32, 28);
-    layout->setSpacing(10);
-    layout->addWidget(crearEtiqueta("OPERACIÓN", "eyebrow"));
-    layout->addWidget(crearEtiqueta("DFA Unión", "pageTitle"));
-    layout->addWidget(crearEtiqueta("Construcción mediante producto cartesiano de dos DFA válidos.", "pageSub"));
-    layout->addSpacing(14);
-    QFrame* estado = crearTarjeta("Estado de construcción", "Esperando validación de DFA 1 y DFA 2");
-    layout->addWidget(estado);
-    QHBoxLayout* fila = new QHBoxLayout;
-    fila->setSpacing(12);
-    fila->addWidget(crearTarjeta("Estados compuestos", "Q₁ × Q₂\n—"));
-    fila->addWidget(crearTarjeta("Estado inicial", "(q₀₁, q₀₂)\n—"));
-    fila->addWidget(crearTarjeta("Estados finales", "F₁ ∪ F₂ según criterio OR\n—"));
-    layout->addLayout(fila);
-    layout->addWidget(crearTarjeta("Tabla de transiciones", "La tabla aparecerá cuando ambos autómatas sean válidos."));
-    layout->addStretch(1);
-    return pagina;
+    QScrollArea* scroll = new QScrollArea;
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    vistaUnionDFA = new VistaUnionDFAWidget(dfa1, dfa2, editorDFA1, editorDFA2);
+    scroll->setWidget(vistaUnionDFA);
+    return scroll;
 }
 
 QWidget* MainWindow::crearPaginaPruebas() {

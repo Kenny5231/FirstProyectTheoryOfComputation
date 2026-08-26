@@ -14,7 +14,11 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 add_executable(SistemaDFA
 	src/main.cpp
 	src/gui/MainWindow.cpp
+	src/gui/EditorDFAWidget.cpp
+	src/gui/VistaUnionDFAWidget.cpp
 	include/gui/MainWindow.h
+	include/gui/EditorDFAWidget.h
+	include/gui/VistaUnionDFAWidget.h
 	src/automata/DFA.cpp
 	src/automata/DFAUnion.cpp
 	src/estructuras/CadenaEntrada.cpp
