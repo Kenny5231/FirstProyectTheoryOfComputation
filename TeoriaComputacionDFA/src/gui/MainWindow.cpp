@@ -165,6 +165,8 @@ void MainWindow::configurarVentana() {
         "QLabel#testTraceTitle { color: #0F172A; font-size: 13px; font-weight: 700; }"
         "QPlainTextEdit#testTrace { background: #FFFFFF; border: 1px solid #E2E8F0; "
         "border-radius: 8px; color: #334155; padding: 8px; }"
+        "QLabel#editorSectionTitle { color: #64748B; font-size: 10px; font-weight: 700; }"
+        "QLabel#testStepIndicator { color: #0F172A; font-size: 13px; font-weight: 700; }"
         "QFrame#unionRequirements, QFrame#unionCard { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; }"
         "QLabel#unionSectionTitle, QLabel#unionCardTitle { color: #64748B; font-size: 10px; font-weight: 700; }"
         "QLabel#unionRequirementName { color: #0F172A; font-size: 13px; font-weight: 600; }"

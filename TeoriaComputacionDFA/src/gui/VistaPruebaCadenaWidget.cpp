@@ -9,6 +9,7 @@
 #include "estructuras/NodoPasoDFAUnion.h"
 #include "gui/EditorDFAWidget.h"
 #include "gui/VistaUnionDFAWidget.h"
+#include "gui/VisualizadorAutomataWidget.h"
 #include "simulacion/EvaluadorTriple.h"
 #include "simulacion/ResultadoTriple.h"
 #include "simulacion/SimuladorDFA.h"
@@ -77,7 +78,14 @@ VistaPruebaCadenaWidget::VistaPruebaCadenaWidget(
       trazaDFA1(nullptr),
       trazaDFA2(nullptr),
       trazaUnion(nullptr),
-      hayResultados(false) {
+    hayResultados(false),
+    visualizadorUnion(nullptr),
+    pasosUnionVisual(),
+    pasoActual(0),
+    indicadorPaso(nullptr),
+    botonAnterior(nullptr),
+    botonSiguiente(nullptr),
+    botonReiniciar(nullptr) {
     crearInterfaz();
     conectarEventos();
     actualizarDisponibilidad();
@@ -150,6 +158,21 @@ void VistaPruebaCadenaWidget::crearInterfaz() {
     trazas->addWidget(etiqueta("Traza DFA Unión", "testTraceTitle"), 2, 0, 1, 2);
     trazas->addWidget(trazaUnion, 3, 0, 1, 2);
     principal->addLayout(trazas);
+    principal->addWidget(etiqueta("VISUALIZACIÓN DEL RECORRIDO", "testSectionTitle"));
+    visualizadorUnion = new VisualizadorAutomataWidget;
+    principal->addWidget(visualizadorUnion);
+    QHBoxLayout* controlesRecorrido = new QHBoxLayout;
+    botonAnterior = new QPushButton("Anterior");
+    indicadorPaso = etiqueta("Paso 0 / 0", "testStepIndicator");
+    botonSiguiente = new QPushButton("Siguiente");
+    botonReiniciar = new QPushButton("Reiniciar recorrido");
+    controlesRecorrido->addWidget(botonAnterior);
+    controlesRecorrido->addStretch();
+    controlesRecorrido->addWidget(indicadorPaso);
+    controlesRecorrido->addStretch();
+    controlesRecorrido->addWidget(botonSiguiente);
+    controlesRecorrido->addWidget(botonReiniciar);
+    principal->addLayout(controlesRecorrido);
     principal->addStretch(1);
 }
 
@@ -166,6 +189,16 @@ void VistaPruebaCadenaWidget::conectarEventos() {
                 if (!generada) invalidarResultados();
                 else actualizarDisponibilidad();
             });
+    connect(botonAnterior, &QPushButton::clicked, this, [this]() {
+        if (pasoActual > 0) { --pasoActual; actualizarRecorrido(); }
+    });
+    connect(botonSiguiente, &QPushButton::clicked, this, [this]() {
+        if (pasoActual < pasosUnionVisual.cantidad()) { ++pasoActual; actualizarRecorrido(); }
+    });
+    connect(botonReiniciar, &QPushButton::clicked, this, [this]() {
+        pasoActual = 0;
+        actualizarRecorrido();
+    });
 }
 
 void VistaPruebaCadenaWidget::actualizarDisponibilidad() {
@@ -198,6 +231,9 @@ void VistaPruebaCadenaWidget::actualizarDisponibilidad() {
     requisitoDFA2->style()->polish(requisitoDFA2);
     requisitoUnion->style()->unpolish(requisitoUnion);
     requisitoUnion->style()->polish(requisitoUnion);
+    botonAnterior->setEnabled(hayResultados && pasoActual > 0);
+    botonSiguiente->setEnabled(hayResultados && pasoActual < pasosUnionVisual.cantidad());
+    botonReiniciar->setEnabled(hayResultados);
 }
 
 void VistaPruebaCadenaWidget::construirCadenaEntrada(const QString& texto, CadenaEntrada& cadena) const {
@@ -299,6 +335,15 @@ void VistaPruebaCadenaWidget::evaluarCadena() {
     const bool procesableDFA1 = simuladorDFA.simularConTraza(*dfa1, cadena, pasosDFA1, aceptadaDFA1, estadoDFA1);
     const bool procesableDFA2 = simuladorDFA.simularConTraza(*dfa2, cadena, pasosDFA2, aceptadaDFA2, estadoDFA2);
     const bool procesableUnion = simuladorUnion.simularConTraza(*unionActual, cadena, pasosUnion, aceptadaUnion, estadoUnionDFA1, estadoUnionDFA2);
+    pasosUnionVisual.limpiar();
+    const NodoPasoDFAUnion* pasoFuente = pasosUnion.obtenerPrimero();
+    while (pasoFuente != nullptr) {
+        pasosUnionVisual.agregarPaso(pasoFuente->origenDFA1, pasoFuente->origenDFA2,
+                                     pasoFuente->simbolo, pasoFuente->destinoDFA1,
+                                     pasoFuente->destinoDFA2);
+        pasoFuente = pasoFuente->siguiente;
+    }
+    pasoActual = 0;
     hayResultados = true;
     if (!resultado.procesable) {
         const QString invalido = QString::fromStdString(resultado.simboloInvalido);
@@ -330,6 +375,7 @@ void VistaPruebaCadenaWidget::evaluarCadena() {
     trazaDFA1->setPlainText(construirTextoTrazaDFA(*dfa1, pasosDFA1, procesableDFA1, aceptadaDFA1, estadoDFA1));
     trazaDFA2->setPlainText(construirTextoTrazaDFA(*dfa2, pasosDFA2, procesableDFA2, aceptadaDFA2, estadoDFA2));
     trazaUnion->setPlainText(construirTextoTrazaUnion(*unionActual, pasosUnion, procesableUnion, aceptadaUnion, estadoUnionDFA1, estadoUnionDFA2));
+    actualizarRecorrido();
 }
 
 void VistaPruebaCadenaWidget::actualizarEstiloResultado(QLabel* etiquetaResultado,
@@ -369,6 +415,40 @@ void VistaPruebaCadenaWidget::limpiarResultados() {
     consistenciaLabel->style()->unpolish(consistenciaLabel);
     consistenciaLabel->style()->polish(consistenciaLabel);
     consistenciaLabel->update();
+}
+
+const NodoPasoDFAUnion* VistaPruebaCadenaWidget::obtenerPasoUnion(int indice) const {
+    const NodoPasoDFAUnion* actual = pasosUnionVisual.obtenerPrimero();
+    int contador = 1;
+    while (actual != nullptr) {
+        if (contador == indice) return actual;
+        actual = actual->siguiente;
+        ++contador;
+    }
+    return nullptr;
+}
+
+void VistaPruebaCadenaWidget::actualizarRecorrido() {
+    const DFAUnion* unionActual = vistaUnion->obtenerDFAUnion();
+    if (unionActual == nullptr) {
+        visualizadorUnion->limpiar();
+        indicadorPaso->setText("Paso 0 / 0");
+        return;
+    }
+    visualizadorUnion->mostrarDFAUnion(*unionActual);
+    if (pasoActual == 0) {
+        visualizadorUnion->resaltarEstadoUnion(unionActual->obtenerEstadoInicialDFA1(), unionActual->obtenerEstadoInicialDFA2());
+    } else {
+        const NodoPasoDFAUnion* paso = obtenerPasoUnion(pasoActual);
+        if (paso != nullptr) {
+            visualizadorUnion->resaltarTransicionUnion(paso->origenDFA1, paso->origenDFA2,
+                                                       paso->simbolo, paso->destinoDFA1,
+                                                       paso->destinoDFA2);
+        }
+    }
+    indicadorPaso->setText(QString("Paso %1 / %2").arg(pasoActual).arg(pasosUnionVisual.cantidad()));
+    botonAnterior->setEnabled(pasoActual > 0);
+    botonSiguiente->setEnabled(pasoActual < pasosUnionVisual.cantidad());
 }
 
 void VistaPruebaCadenaWidget::invalidarResultados() {

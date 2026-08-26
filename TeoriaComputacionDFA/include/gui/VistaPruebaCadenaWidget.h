@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <string>
 
+#include "estructuras/ListaPasosDFAUnion.h"
+
 class CadenaEntrada;
 class DFA;
 class DFAUnion;
@@ -15,6 +17,7 @@ class QLineEdit;
 class QPlainTextEdit;
 class QPushButton;
 class VistaUnionDFAWidget;
+class VisualizadorAutomataWidget;
 
 class VistaPruebaCadenaWidget : public QWidget {
 public:
@@ -43,6 +46,8 @@ private:
                                      const std::string& estadoFinalDFA2) const;
     void actualizarEstiloResultado(QLabel* etiqueta, const QString& estado,
                                    bool error);
+    const NodoPasoDFAUnion* obtenerPasoUnion(int indice) const;
+    void actualizarRecorrido();
 
     DFA* dfa1;
     DFA* dfa2;
@@ -66,6 +71,13 @@ private:
     QPlainTextEdit* trazaDFA2;
     QPlainTextEdit* trazaUnion;
     bool hayResultados;
+    VisualizadorAutomataWidget* visualizadorUnion;
+    ListaPasosDFAUnion pasosUnionVisual;
+    int pasoActual;
+    QLabel* indicadorPaso;
+    QPushButton* botonAnterior;
+    QPushButton* botonSiguiente;
+    QPushButton* botonReiniciar;
 };
 
 #endif

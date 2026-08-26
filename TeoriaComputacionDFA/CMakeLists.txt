@@ -17,10 +17,18 @@ add_executable(SistemaDFA
 	src/gui/EditorDFAWidget.cpp
 	src/gui/VistaUnionDFAWidget.cpp
 	src/gui/VistaPruebaCadenaWidget.cpp
+	src/gui/VisualizadorAutomataWidget.cpp
+	src/estructuras/ListaPosicionesEstados.cpp
+	src/estructuras/ListaPosicionesEstadosCompuestos.cpp
 	include/gui/MainWindow.h
 	include/gui/EditorDFAWidget.h
 	include/gui/VistaUnionDFAWidget.h
 	include/gui/VistaPruebaCadenaWidget.h
+	include/gui/VisualizadorAutomataWidget.h
+	include/estructuras/ListaPosicionesEstados.h
+	include/estructuras/ListaPosicionesEstadosCompuestos.h
+	include/estructuras/NodoPosicionEstado.h
+	include/estructuras/NodoPosicionEstadoCompuesto.h
 	src/automata/DFA.cpp
 	src/automata/DFAUnion.cpp
 	src/estructuras/CadenaEntrada.cpp

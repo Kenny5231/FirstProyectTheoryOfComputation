@@ -11,6 +11,7 @@ class QLineEdit;
 class QPlainTextEdit;
 class QPushButton;
 class QTableWidget;
+class VisualizadorAutomataWidget;
 
 class EditorDFAWidget : public QWidget {
     Q_OBJECT
@@ -69,6 +70,7 @@ private:
     QLabel* listaFinalesLabel;
     QLabel* mensajeEstado;
     QTableWidget* tablaTransiciones;
+    VisualizadorAutomataWidget* visualizador;
     QFrame* tarjetaValidacion;
     QLabel* estadoValidacionLabel;
     QLabel* detalleValidacionLabel;

@@ -12,6 +12,7 @@ class QLabel;
 class QPlainTextEdit;
 class QPushButton;
 class QTableWidget;
+class VisualizadorAutomataWidget;
 
 class VistaUnionDFAWidget : public QWidget {
     Q_OBJECT
@@ -72,6 +73,7 @@ private:
     QPlainTextEdit* panelErrores;
     QTableWidget* tablaTransiciones;
     QPushButton* botonGenerar;
+    VisualizadorAutomataWidget* visualizadorUnion;
 };
 
 #endif

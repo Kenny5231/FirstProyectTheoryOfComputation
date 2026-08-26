@@ -7,6 +7,7 @@
 #include "validacion/ListaErrores.h"
 #include "validacion/NodoError.h"
 #include "validacion/ValidadorDFA.h"
+#include "gui/VisualizadorAutomataWidget.h"
 
 #include <QAbstractItemView>
 #include <QComboBox>
@@ -90,6 +91,7 @@ EditorDFAWidget::EditorDFAWidget(DFA& dfaReferencia, const QString& titulo,
       listaFinalesLabel(nullptr),
       mensajeEstado(nullptr),
     tablaTransiciones(nullptr),
+        visualizador(nullptr),
     tarjetaValidacion(nullptr),
     estadoValidacionLabel(nullptr),
     detalleValidacionLabel(nullptr),
@@ -143,6 +145,10 @@ void EditorDFAWidget::crearInterfaz(const QString& titulo, const QString& descri
     progresoLayout->addWidget(resumenFinalesLabel, 1, 3);
     progresoLayout->addWidget(resumenTransicionesLabel, 1, 4);
     principal->addWidget(progreso);
+
+    principal->addWidget(etiqueta("VISUALIZACIÓN DEL AUTÓMATA", "editorSectionTitle"));
+    visualizador = new VisualizadorAutomataWidget;
+    principal->addWidget(visualizador);
 
     tarjetaValidacion = new QFrame;
     tarjetaValidacion->setObjectName("validationCard");
@@ -435,6 +441,7 @@ void EditorDFAWidget::refrescarInterfaz() {
     botonEstablecerInicial->setEnabled(hayEstados);
     botonAgregarFinal->setEnabled(hayEstados);
     botonAgregarTransicion->setEnabled(hayEstados && haySimbolos);
+    visualizador->mostrarDFA(*dfa);
 }
 
 void EditorDFAWidget::mostrarMensaje(const QString& texto, bool error) {

@@ -10,8 +10,10 @@
 #include "operaciones/ConstructorDFAUnion.h"
 #include "validacion/ListaErrores.h"
 #include "validacion/NodoError.h"
+#include "gui/VisualizadorAutomataWidget.h"
 
 #include <QFrame>
+#include <QAbstractItemView>
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -73,7 +75,8 @@ VistaUnionDFAWidget::VistaUnionDFAWidget(DFA& dfa1Referencia, DFA& dfa2Referenci
       estadoResultadoLabel(nullptr),
       panelErrores(nullptr),
       tablaTransiciones(nullptr),
-      botonGenerar(nullptr) {
+    botonGenerar(nullptr),
+    visualizadorUnion(nullptr) {
     crearInterfaz();
     conectarEventos();
     actualizarDisponibilidad();
@@ -156,6 +159,10 @@ void VistaUnionDFAWidget::crearInterfaz() {
     detalles->addWidget(finales, 0, 2);
     principal->addLayout(detalles);
 
+    principal->addWidget(etiqueta("VISUALIZACIÓN DEL DFA UNIÓN", "unionSectionTitle"));
+    visualizadorUnion = new VisualizadorAutomataWidget;
+    principal->addWidget(visualizadorUnion);
+
     QFrame* tablaMarco = new QFrame;
     tablaMarco->setObjectName("unionCard");
     QVBoxLayout* tablaLayout = new QVBoxLayout(tablaMarco);
@@ -207,6 +214,7 @@ void VistaUnionDFAWidget::invalidarUnion() {
         dfaUnion = nullptr;
     }
     limpiarResultado();
+    visualizadorUnion->limpiar();
     mensajeLabel->setText("Los autómatas fueron modificados. Valídalos nuevamente y genera una nueva unión.");
     actualizarDisponibilidad();
     emit estadoUnionCambiado(false);
@@ -263,6 +271,7 @@ void VistaUnionDFAWidget::generarUnion() {
     }
     delete dfaUnion;
     dfaUnion = nuevaUnion;
+    visualizadorUnion->mostrarDFAUnion(*dfaUnion);
     mostrarEstado("DFA UNIÓN GENERADO CORRECTAMENTE", true);
     actualizarResultado();
     emit estadoUnionCambiado(true);

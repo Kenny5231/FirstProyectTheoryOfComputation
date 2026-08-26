@@ -234,3 +234,13 @@ La prueba grafica de cadenas se implementa en la Fase 20.
 - Invalidacion automatica de resultados cuando cambian los DFA o la union.
 
 Despues de esta fase quedan unicamente integracion, pulido y pruebas finales.
+
+## FASE 21 - Visualizacion grafica de automatas
+- `VisualizadorAutomataWidget` con `QGraphicsView` y `QGraphicsScene` como presentacion.
+- Posiciones manuales para estados simples y compuestos.
+- Distribucion automatica circular y tratamiento especial para uno o dos estados.
+- Estados iniciales, finales, transiciones, ciclos y aristas curvas.
+- Visualizacion de DFA 1, DFA 2 y DFA Union.
+- Resaltado del recorrido del DFA Union en la prueba de cadenas.
+- Navegacion paso a paso sin colecciones STL o Qt para almacenar el automata.
+- Las fuentes de verdad siguen siendo `DFA` y `DFAUnion`.
