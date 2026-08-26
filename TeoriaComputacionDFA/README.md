@@ -244,3 +244,9 @@ Despues de esta fase quedan unicamente integracion, pulido y pruebas finales.
 - Resaltado del recorrido del DFA Union en la prueba de cadenas.
 - Navegacion paso a paso sin colecciones STL o Qt para almacenar el automata.
 - Las fuentes de verdad siguen siendo `DFA` y `DFAUnion`.
+
+Correccion visual de Fase 21:
+- Las etiquetas de transiciones usan su tamano real para quedar centradas.
+- Los simbolos de self-loops se colocan por encima del arco.
+- Cada etiqueta tiene un fondo claro y un orden Z que evita que quede oculta por los estados.
+- Los simbolos resaltados conservan el color verde durante la trazabilidad.
