@@ -222,4 +222,15 @@ La union grafica se implementa en la Fase 19.
 - Invalidacion automatica cuando se modifica DFA 1 o DFA 2.
 - `QTableWidget` utilizado solamente como presentacion.
 
-La prueba grafica de cadenas se implementara en la Fase 20.
+La prueba grafica de cadenas se implementa en la Fase 20.
+
+## FASE 20 - Prueba grafica de cadenas
+- `VistaPruebaCadenaWidget` para evaluar una secuencia desde la interfaz.
+- Parser manual de simbolos, sin `QString::split()` ni `QStringList`.
+- Soporte de simbolos de varios caracteres y cadena vacia epsilon.
+- Integracion con `EvaluadorTriple` para el veredicto de DFA 1, DFA 2 y DFA Union.
+- Trazabilidad grafica mediante `SimuladorDFA`, `SimuladorDFAUnion`, `ListaPasosDFA` y `ListaPasosDFAUnion`.
+- Estados alcanzados, consistencia de la union y cadenas no procesables.
+- Invalidacion automatica de resultados cuando cambian los DFA o la union.
+
+Despues de esta fase quedan unicamente integracion, pulido y pruebas finales.

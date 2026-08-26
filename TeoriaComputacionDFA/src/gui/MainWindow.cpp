@@ -2,6 +2,7 @@
 
 #include "gui/EditorDFAWidget.h"
 #include "gui/VistaUnionDFAWidget.h"
+#include "gui/VistaPruebaCadenaWidget.h"
 
 #include <QFrame>
 #include <QHBoxLayout>
@@ -60,7 +61,8 @@ MainWindow::MainWindow(QWidget* parent)
             dfa2(),
             editorDFA1(nullptr),
             editorDFA2(nullptr),
-            vistaUnionDFA(nullptr) {
+            vistaUnionDFA(nullptr),
+            vistaPruebaCadena(nullptr) {
     configurarVentana();
     crearInterfaz();
     conectarEventos();
@@ -148,6 +150,21 @@ void MainWindow::configurarVentana() {
         "QPushButton#validationButton:hover { background: #1D4ED8; }"
         "QPlainTextEdit#errorPanel { background: #FEF2F2; color: #991B1B; "
         "border: 1px solid #FECACA; border-radius: 8px; padding: 8px; }"
+        "QFrame#testRequirements, QFrame#testResultCard { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; }"
+        "QLabel#testSectionTitle, QLabel#testCardTitle { color: #64748B; font-size: 10px; font-weight: 700; }"
+        "QLabel#testRequirementName { color: #0F172A; font-size: 13px; font-weight: 600; }"
+        "QLabel#testRequirementStatus { color: #64748B; font-size: 13px; }"
+        "QLabel#testRequirementStatus[valid=\"true\"] { color: #16A34A; font-weight: 700; }"
+        "QLabel#testResultStatus { color: #64748B; font-size: 15px; font-weight: 700; }"
+        "QLabel#testResultStatus[error=\"true\"] { color: #DC2626; }"
+        "QLabel#testResultStatus[error=\"false\"] { color: #16A34A; }"
+        "QLabel#testResultFinal, QLabel#testHint { color: #64748B; font-size: 12px; }"
+        "QLabel#testMessage { color: #2563EB; font-size: 13px; font-weight: 600; }"
+        "QLabel#testConsistency { color: #16A34A; font-size: 13px; font-weight: 700; }"
+        "QLabel#testConsistency[error=\"true\"] { color: #DC2626; }"
+        "QLabel#testTraceTitle { color: #0F172A; font-size: 13px; font-weight: 700; }"
+        "QPlainTextEdit#testTrace { background: #FFFFFF; border: 1px solid #E2E8F0; "
+        "border-radius: 8px; color: #334155; padding: 8px; }"
         "QFrame#unionRequirements, QFrame#unionCard { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; }"
         "QLabel#unionSectionTitle, QLabel#unionCardTitle { color: #64748B; font-size: 10px; font-weight: 700; }"
         "QLabel#unionRequirementName { color: #0F172A; font-size: 13px; font-weight: 600; }"
@@ -298,37 +315,14 @@ QWidget* MainWindow::crearPaginaUnion() {
 }
 
 QWidget* MainWindow::crearPaginaPruebas() {
-    QWidget* pagina = new QWidget;
-    QVBoxLayout* layout = new QVBoxLayout(pagina);
-    layout->setContentsMargins(32, 28, 32, 28);
-    layout->setSpacing(10);
-    layout->addWidget(crearEtiqueta("SIMULACIÓN", "eyebrow"));
-    layout->addWidget(crearEtiqueta("Prueba de cadenas", "pageTitle"));
-    layout->addWidget(crearEtiqueta("Evalúa una secuencia sobre DFA 1, DFA 2 y el DFA Unión.", "pageSub"));
-    layout->addSpacing(14);
-    QFrame* entrada = new QFrame;
-    entrada->setObjectName("card");
-    QHBoxLayout* entradaLayout = new QHBoxLayout(entrada);
-    entradaLayout->setContentsMargins(16, 12, 16, 12);
-    entradaLayout->setSpacing(10);
-    QLineEdit* campoCadena = new QLineEdit;
-    campoCadena->setPlaceholderText("Ejemplo: a b a b");
-    QPushButton* botonEvaluar = new QPushButton("Evaluar cadena");
-    botonEvaluar->setObjectName("primaryButton");
-    botonEvaluar->setEnabled(false);
-    botonEvaluar->setToolTip("Disponible después de configurar y validar ambos DFA.");
-    entradaLayout->addWidget(campoCadena, 1);
-    entradaLayout->addWidget(botonEvaluar);
-    layout->addWidget(entrada);
-    QHBoxLayout* fila = new QHBoxLayout;
-    fila->setSpacing(12);
-    fila->addWidget(crearTarjeta("DFA 1", "Sin evaluar"));
-    fila->addWidget(crearTarjeta("DFA 2", "Sin evaluar"));
-    fila->addWidget(crearTarjeta("DFA Unión", "Sin evaluar"));
-    layout->addLayout(fila);
-    layout->addWidget(crearTarjeta("Trazabilidad", "No hay una simulación activa."));
-    layout->addStretch(1);
-    return pagina;
+    QScrollArea* scroll = new QScrollArea;
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    vistaPruebaCadena = new VistaPruebaCadenaWidget(
+        dfa1, dfa2, editorDFA1, editorDFA2, vistaUnionDFA);
+    scroll->setWidget(vistaPruebaCadena);
+    return scroll;
 }
 
 void MainWindow::conectarEventos() {

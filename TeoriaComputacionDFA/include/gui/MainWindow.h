@@ -8,6 +8,7 @@
 
 class EditorDFAWidget;
 class VistaUnionDFAWidget;
+class VistaPruebaCadenaWidget;
 class QStackedWidget;
 class QPushButton;
 
@@ -38,6 +39,7 @@ private:
     EditorDFAWidget* editorDFA1;
     EditorDFAWidget* editorDFA2;
     VistaUnionDFAWidget* vistaUnionDFA;
+    VistaPruebaCadenaWidget* vistaPruebaCadena;
 };
 
 #endif

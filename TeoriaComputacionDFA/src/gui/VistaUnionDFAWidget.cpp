@@ -202,11 +202,14 @@ void VistaUnionDFAWidget::actualizarDisponibilidad() {
 }
 
 void VistaUnionDFAWidget::invalidarUnion() {
-    if (dfaUnion == nullptr) return;
-    delete dfaUnion;
-    dfaUnion = nullptr;
+    if (dfaUnion != nullptr) {
+        delete dfaUnion;
+        dfaUnion = nullptr;
+    }
     limpiarResultado();
     mensajeLabel->setText("Los autómatas fueron modificados. Valídalos nuevamente y genera una nueva unión.");
+    actualizarDisponibilidad();
+    emit estadoUnionCambiado(false);
 }
 
 void VistaUnionDFAWidget::mostrarError(const QString& mensaje) {
@@ -226,6 +229,7 @@ void VistaUnionDFAWidget::mostrarEstado(const QString& mensaje, bool correcto) {
 void VistaUnionDFAWidget::generarUnion() {
     if (!editorDFA1->esDFAValido() || !editorDFA2->esDFAValido()) {
         mostrarError("No se puede generar la unión: ambos DFA deben ser válidos.");
+        emit estadoUnionCambiado(false);
         return;
     }
     CompatibilidadDFA compatibilidad;
@@ -243,6 +247,7 @@ void VistaUnionDFAWidget::generarUnion() {
         panelErrores->setVisible(true);
         estadoAlfabetosLabel->setText("Incompatibles");
         mostrarError("ALFABETOS INCOMPATIBLES");
+        emit estadoUnionCambiado(false);
         return;
     }
     panelErrores->clear();
@@ -253,12 +258,14 @@ void VistaUnionDFAWidget::generarUnion() {
     if (!constructor.construir(*dfa1, *dfa2, *nuevaUnion)) {
         delete nuevaUnion;
         mostrarError("No fue posible construir el DFA Unión.");
+        emit estadoUnionCambiado(false);
         return;
     }
     delete dfaUnion;
     dfaUnion = nuevaUnion;
     mostrarEstado("DFA UNIÓN GENERADO CORRECTAMENTE", true);
     actualizarResultado();
+    emit estadoUnionCambiado(true);
 }
 
 void VistaUnionDFAWidget::limpiarResultado() {
@@ -271,10 +278,16 @@ void VistaUnionDFAWidget::limpiarResultado() {
     simbolosLabel->setText("—");
     inicialLabel->setText("—");
     finalesLabel->setText("—");
+    estadoAlfabetosLabel->setText("No comprobados");
+    estadoAlfabetosLabel->setProperty("valid", false);
+    panelErrores->clear();
+    panelErrores->setVisible(false);
     tablaTransiciones->clear();
     tablaTransiciones->setRowCount(0);
     tablaTransiciones->setColumnCount(0);
     estadoResultadoLabel->setText("La unión aún no ha sido generada.");
+    estadoAlfabetosLabel->style()->unpolish(estadoAlfabetosLabel);
+    estadoAlfabetosLabel->style()->polish(estadoAlfabetosLabel);
 }
 
 QString VistaUnionDFAWidget::textoEstados() const {

@@ -14,6 +14,8 @@ class QPushButton;
 class QTableWidget;
 
 class VistaUnionDFAWidget : public QWidget {
+    Q_OBJECT
+
 public:
     VistaUnionDFAWidget(DFA& dfa1, DFA& dfa2,
                        EditorDFAWidget* editorDFA1,
@@ -25,6 +27,9 @@ public:
     const DFAUnion* obtenerDFAUnion() const;
     void actualizarDisponibilidad();
     void invalidarUnion();
+
+signals:
+    void estadoUnionCambiado(bool generada);
 
 private:
     void crearInterfaz();

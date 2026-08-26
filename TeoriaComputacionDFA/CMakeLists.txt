@@ -16,9 +16,11 @@ add_executable(SistemaDFA
 	src/gui/MainWindow.cpp
 	src/gui/EditorDFAWidget.cpp
 	src/gui/VistaUnionDFAWidget.cpp
+	src/gui/VistaPruebaCadenaWidget.cpp
 	include/gui/MainWindow.h
 	include/gui/EditorDFAWidget.h
 	include/gui/VistaUnionDFAWidget.h
+	include/gui/VistaPruebaCadenaWidget.h
 	src/automata/DFA.cpp
 	src/automata/DFAUnion.cpp
 	src/estructuras/CadenaEntrada.cpp
