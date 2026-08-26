@@ -32,7 +32,6 @@ private:
     void conectarEventos();
     void construirCadenaEntrada(const QString& texto, CadenaEntrada& cadena) const;
     void evaluarCadena();
-    void mostrarResultado();
     void limpiarResultados();
     QString construirTextoTrazaDFA(const DFA& dfa, const ListaPasosDFA& pasos,
                                    bool procesable, bool aceptada,
@@ -42,9 +41,6 @@ private:
                                      bool procesable, bool aceptada,
                                      const std::string& estadoFinalDFA1,
                                      const std::string& estadoFinalDFA2) const;
-    QString estadoDFA1(const QString& prefijo) const;
-    QString estadoDFA2(const QString& prefijo) const;
-    QString estadoUnion() const;
     void actualizarEstiloResultado(QLabel* etiqueta, const QString& estado,
                                    bool error);
 

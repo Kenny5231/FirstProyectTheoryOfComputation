@@ -164,7 +164,7 @@ void VistaPruebaCadenaWidget::conectarEventos() {
     connect(vistaUnion, &VistaUnionDFAWidget::estadoUnionCambiado,
             this, [this](bool generada) {
                 if (!generada) invalidarResultados();
-                actualizarDisponibilidad();
+                else actualizarDisponibilidad();
             });
 }
 
@@ -181,6 +181,17 @@ void VistaPruebaCadenaWidget::actualizarDisponibilidad() {
     const bool disponible = valido1 && valido2 && unionGenerada;
     botonEvaluar->setEnabled(disponible);
     botonEvaluar->setToolTip(disponible ? "Evalúa la cadena." : "Valida ambos DFA y genera la unión antes de evaluar.");
+    if (disponible) {
+        mensajeEstado->setText("Todo listo. Ingresa una cadena para evaluarla.");
+    } else if (!valido1 && !valido2) {
+        mensajeEstado->setText("Valida DFA 1 y DFA 2 antes de continuar.");
+    } else if (!valido1) {
+        mensajeEstado->setText("Valida DFA 1 antes de evaluar cadenas.");
+    } else if (!valido2) {
+        mensajeEstado->setText("Valida DFA 2 antes de evaluar cadenas.");
+    } else {
+        mensajeEstado->setText("Genera el DFA Unión antes de evaluar cadenas.");
+    }
     requisitoDFA1->style()->unpolish(requisitoDFA1);
     requisitoDFA1->style()->polish(requisitoDFA1);
     requisitoDFA2->style()->unpolish(requisitoDFA2);
@@ -301,9 +312,15 @@ void VistaPruebaCadenaWidget::evaluarCadena() {
         actualizarEstiloResultado(resultadoDFA2, estadoResultado(resultado.aceptadaDFA2), !resultado.aceptadaDFA2);
         actualizarEstiloResultado(resultadoUnion, estadoResultado(resultado.aceptadaUnion), !resultado.aceptadaUnion);
     }
-    estadoFinalDFA1Label->setText("Estado: " + QString::fromStdString(resultado.estadoFinalDFA1));
-    estadoFinalDFA2Label->setText("Estado: " + QString::fromStdString(resultado.estadoFinalDFA2));
-    estadoFinalUnionLabel->setText("Estado: (" + QString::fromStdString(resultado.estadoFinalUnionDFA1) + "," + QString::fromStdString(resultado.estadoFinalUnionDFA2) + ")");
+    if (resultado.procesable) {
+        estadoFinalDFA1Label->setText("Estado: " + QString::fromStdString(resultado.estadoFinalDFA1));
+        estadoFinalDFA2Label->setText("Estado: " + QString::fromStdString(resultado.estadoFinalDFA2));
+        estadoFinalUnionLabel->setText("Estado: (" + QString::fromStdString(resultado.estadoFinalUnionDFA1) + "," + QString::fromStdString(resultado.estadoFinalUnionDFA2) + ")");
+    } else {
+        estadoFinalDFA1Label->setText("Estado: —");
+        estadoFinalDFA2Label->setText("Estado: —");
+        estadoFinalUnionLabel->setText("Estado: —");
+    }
     consistenciaLabel->setText(resultado.procesable
         ? (resultado.unionConsistente ? "DFA Unión = DFA1 OR DFA2\nCORRECTA" : "DFA Unión = DFA1 OR DFA2\nINCONSISTENCIA DETECTADA")
         : "DFA Unión = DFA1 OR DFA2\nNo comprobable: cadena no procesable");
@@ -329,13 +346,29 @@ void VistaPruebaCadenaWidget::limpiarResultados() {
     resultadoDFA1->setText("Sin evaluar");
     resultadoDFA2->setText("Sin evaluar");
     resultadoUnion->setText("Sin evaluar");
+    resultadoDFA1->setProperty("error", false);
+    resultadoDFA2->setProperty("error", false);
+    resultadoUnion->setProperty("error", false);
     estadoFinalDFA1Label->setText("Estado: —");
     estadoFinalDFA2Label->setText("Estado: —");
     estadoFinalUnionLabel->setText("Estado: —");
     consistenciaLabel->setText("DFA Unión = DFA1 OR DFA2\nPendiente de evaluación");
+    consistenciaLabel->setProperty("error", false);
     trazaDFA1->clear();
     trazaDFA2->clear();
     trazaUnion->clear();
+    resultadoDFA1->style()->unpolish(resultadoDFA1);
+    resultadoDFA1->style()->polish(resultadoDFA1);
+    resultadoDFA1->update();
+    resultadoDFA2->style()->unpolish(resultadoDFA2);
+    resultadoDFA2->style()->polish(resultadoDFA2);
+    resultadoDFA2->update();
+    resultadoUnion->style()->unpolish(resultadoUnion);
+    resultadoUnion->style()->polish(resultadoUnion);
+    resultadoUnion->update();
+    consistenciaLabel->style()->unpolish(consistenciaLabel);
+    consistenciaLabel->style()->polish(consistenciaLabel);
+    consistenciaLabel->update();
 }
 
 void VistaPruebaCadenaWidget::invalidarResultados() {
