@@ -165,7 +165,7 @@ FASE 15:
 - Deteccion manual del simbolo invalido real.
 - Comprobacion Union = DFA1 OR DFA2.
 
-## Interfaz grafica pendiente
+## Interfaz grafica
 El producto final utilizara Qt 6 + Qt Widgets.
 
 Las siguientes fases estaran orientadas a construir la interfaz grafica.
@@ -176,3 +176,15 @@ No se utilizaran colecciones Qt para almacenar los automatas.
 Todavia NO estan implementados:
 - Entrada interactiva definitiva.
 - Menu final.
+
+## FASE 16 - Base de interfaz grafica
+- Qt 6 y Qt Widgets.
+- `MainWindow` y `QApplication`.
+- Navegacion lateral mediante `QStackedWidget`.
+- Paginas de Inicio, DFA 1, DFA 2, DFA Union y Prueba.
+- Diseno adaptable mediante layouts, sin posicionamiento absoluto.
+- Separacion entre la interfaz grafica y la logica del automata.
+- Respaldo del main de consola en `src/pruebas/main_consola_fases1_15.cpp`.
+- Motor existente de las fases 1 a 15 preservado.
+
+La interfaz grafica aun no edita los DFA. Esa funcionalidad comienza en la Fase 17.
