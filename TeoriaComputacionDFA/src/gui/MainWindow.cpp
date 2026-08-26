@@ -3,8 +3,8 @@
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
-#include <QSizePolicy>
 #include <QStackedWidget>
 #include <QStyle>
 #include <QVBoxLayout>
@@ -13,19 +13,33 @@
 namespace {
 QLabel* crearEtiqueta(const QString& texto, const QString& clase) {
     QLabel* etiqueta = new QLabel(texto);
-    etiqueta->setProperty("class", clase);
+    etiqueta->setObjectName(clase);
     etiqueta->setWordWrap(true);
     return etiqueta;
 }
 
 QFrame* crearTarjeta(const QString& titulo, const QString& contenido) {
     QFrame* tarjeta = new QFrame;
-    tarjeta->setProperty("class", "card");
+    tarjeta->setObjectName("card");
     QVBoxLayout* layout = new QVBoxLayout(tarjeta);
-    layout->setContentsMargins(22, 20, 22, 20);
-    layout->setSpacing(8);
+    layout->setContentsMargins(20, 18, 20, 18);
+    layout->setSpacing(6);
     layout->addWidget(crearEtiqueta(titulo, "cardTitle"));
     layout->addWidget(crearEtiqueta(contenido, "cardText"));
+    return tarjeta;
+}
+
+QFrame* crearTarjetaFlujo(const QString& numero, const QString& titulo,
+                          const QString& contenido) {
+    QFrame* tarjeta = new QFrame;
+    tarjeta->setObjectName("card");
+    QVBoxLayout* layout = new QVBoxLayout(tarjeta);
+    layout->setContentsMargins(20, 18, 20, 18);
+    layout->setSpacing(8);
+    layout->addWidget(crearEtiqueta(numero, "stepNumber"));
+    layout->addWidget(crearEtiqueta(titulo, "cardTitle"));
+    layout->addWidget(crearEtiqueta(contenido, "cardText"));
+    layout->addWidget(crearEtiqueta("●  Preparado", "badge"));
     return tarjeta;
 }
 }
@@ -49,24 +63,42 @@ void MainWindow::configurarVentana() {
     setMinimumSize(1000, 650);
     resize(1200, 750);
     setStyleSheet(
-        "QMainWindow, QWidget#central { background: #F5F7FA; color: #111827; }"
-        "QWidget#sidebar { background: #111827; }"
-        "QLabel#brand { color: #FFFFFF; font-size: 20px; font-weight: 700; }"
-        "QLabel#brandSub { color: #9CA3AF; font-size: 12px; }"
-        "QLabel#sectionLabel { color: #9CA3AF; font-size: 11px; font-weight: 700; }"
+        "QMainWindow, QWidget#central { background: #F8FAFC; color: #0F172A; }"
+        "QWidget#sidebar { background: #0F172A; }"
+        "QLabel#brand { color: #FFFFFF; font-size: 19px; font-weight: 700; }"
+        "QLabel#brandSub { color: #94A3B8; font-size: 12px; }"
+        "QLabel#sectionLabel { color: #64748B; font-size: 11px; font-weight: 700; }"
+        "QLabel#brandMark { background: #2563EB; color: #FFFFFF; border-radius: 8px; "
+        "font-size: 16px; font-weight: 700; padding: 8px; }"
         "QPushButton#navButton { background: transparent; border: 0; border-radius: 7px; "
-        "color: #D1D5DB; text-align: left; padding: 13px 16px; font-size: 14px; }"
-        "QPushButton#navButton:hover { background: #1F2937; color: #FFFFFF; }"
+        "color: #CBD5E1; text-align: left; padding: 0 14px; min-height: 46px; "
+        "font-size: 14px; }"
+        "QPushButton#navButton:hover { background: #1E293B; color: #FFFFFF; }"
         "QPushButton#navButton[active=\"true\"] { background: #2563EB; color: #FFFFFF; font-weight: 700; }"
-        "QLabel#headerTitle { color: #111827; font-size: 25px; font-weight: 700; }"
-        "QLabel#headerSub, QLabel#pageSub { color: #6B7280; font-size: 14px; }"
-        "QLabel#pageTitle { color: #111827; font-size: 28px; font-weight: 700; }"
-        "QLabel#intro { color: #374151; font-size: 16px; }"
-        "QFrame[class=\"card\"] { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; }"
-        "QLabel#cardTitle { color: #111827; font-size: 16px; font-weight: 700; }"
-        "QLabel#cardText { color: #6B7280; font-size: 13px; }"
-        "QFrame#header { background: #FFFFFF; border-bottom: 1px solid #E5E7EB; }"
+        "QLabel#headerTitle { color: #0F172A; font-size: 20px; font-weight: 700; }"
+        "QLabel#headerSub, QLabel#pageSub { color: #64748B; font-size: 13px; }"
+        "QLabel#headerMeta { color: #64748B; background: #F1F5F9; border-radius: 6px; "
+        "padding: 7px 10px; font-size: 12px; }"
+        "QLabel#pageTitle { color: #0F172A; font-size: 27px; font-weight: 700; }"
+        "QLabel#intro { color: #334155; font-size: 15px; }"
+        "QFrame#card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; }"
+        "QLabel#cardTitle { color: #0F172A; font-size: 15px; font-weight: 700; }"
+        "QLabel#cardText { color: #64748B; font-size: 13px; }"
+        "QLabel#stepNumber { color: #2563EB; font-size: 26px; font-weight: 700; }"
+        "QLabel#badge { color: #15803D; background: #F0FDF4; border-radius: 5px; "
+        "padding: 4px 7px; font-size: 11px; font-weight: 700; }"
+        "QFrame#hero { background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 12px; }"
+        "QLabel#heroTitle { color: #1E3A8A; font-size: 16px; font-weight: 700; }"
+        "QLabel#heroText { color: #1E40AF; font-size: 13px; }"
+        "QFrame#header { background: #FFFFFF; border-bottom: 1px solid #E2E8F0; }"
         "QLabel#eyebrow { color: #2563EB; font-size: 11px; font-weight: 700; }"
+        "QLabel#statusLabel { color: #15803D; font-size: 12px; font-weight: 700; }"
+        "QLineEdit { background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; "
+        "padding: 10px 12px; color: #0F172A; }"
+        "QLineEdit:focus { border: 1px solid #2563EB; }"
+        "QPushButton#primaryButton { background: #2563EB; color: #FFFFFF; border: 0; "
+        "border-radius: 8px; padding: 10px 16px; font-weight: 700; }"
+        "QPushButton#primaryButton:disabled { background: #CBD5E1; color: #64748B; }"
     );
 }
 
@@ -75,23 +107,28 @@ void MainWindow::crearInterfaz() {
     central->setObjectName("central");
     setCentralWidget(central);
 
-    QVBoxLayout* principal = new QVBoxLayout(central);
-    principal->setContentsMargins(0, 0, 0, 0);
-    principal->setSpacing(0);
+    QHBoxLayout* raiz = new QHBoxLayout(central);
+    raiz->setContentsMargins(0, 0, 0, 0);
+    raiz->setSpacing(0);
+    raiz->addWidget(crearSidebar());
+
+    QVBoxLayout* contenidoDerecho = new QVBoxLayout;
+    contenidoDerecho->setContentsMargins(0, 0, 0, 0);
+    contenidoDerecho->setSpacing(0);
 
     QFrame* encabezado = new QFrame(central);
     encabezado->setObjectName("header");
+    encabezado->setFixedHeight(76);
     QHBoxLayout* encabezadoLayout = new QHBoxLayout(encabezado);
-    encabezadoLayout->setContentsMargins(30, 20, 30, 20);
-    encabezadoLayout->addWidget(crearEtiqueta("Sistema de Autómatas DFA", "headerTitle"));
+    encabezadoLayout->setContentsMargins(28, 12, 28, 12);
+    QVBoxLayout* identidadHeader = new QVBoxLayout;
+    identidadHeader->setSpacing(2);
+    identidadHeader->addWidget(crearEtiqueta("Sistema de Autómatas DFA", "headerTitle"));
+    identidadHeader->addWidget(crearEtiqueta("Teoría de la Computación", "headerSub"));
+    encabezadoLayout->addLayout(identidadHeader);
     encabezadoLayout->addStretch();
-    encabezadoLayout->addWidget(crearEtiqueta("Teoría de la Computación", "headerSub"));
-    principal->addWidget(encabezado);
-
-    QHBoxLayout* contenido = new QHBoxLayout;
-    contenido->setContentsMargins(0, 0, 0, 0);
-    contenido->setSpacing(0);
-    contenido->addWidget(crearSidebar());
+    encabezadoLayout->addWidget(crearEtiqueta("Qt 6  •  C++17", "headerMeta"));
+    contenidoDerecho->addWidget(encabezado);
 
     paginas = new QStackedWidget(central);
     paginas->addWidget(crearPaginaInicio());
@@ -99,8 +136,8 @@ void MainWindow::crearInterfaz() {
     paginas->addWidget(crearPaginaDFA("DFA 2", "Define los componentes del segundo autómata."));
     paginas->addWidget(crearPaginaUnion());
     paginas->addWidget(crearPaginaPruebas());
-    contenido->addWidget(paginas, 1);
-    principal->addLayout(contenido, 1);
+    contenidoDerecho->addWidget(paginas, 1);
+    raiz->addLayout(contenidoDerecho, 1);
 }
 
 QWidget* MainWindow::crearSidebar() {
@@ -108,11 +145,16 @@ QWidget* MainWindow::crearSidebar() {
     sidebar->setObjectName("sidebar");
     sidebar->setFixedWidth(230);
     QVBoxLayout* layout = new QVBoxLayout(sidebar);
-    layout->setContentsMargins(18, 26, 18, 20);
-    layout->setSpacing(8);
-    layout->addWidget(crearEtiqueta("SISTEMA DFA", "brand"));
+    layout->setContentsMargins(18, 24, 18, 20);
+    layout->setSpacing(7);
+    QHBoxLayout* marca = new QHBoxLayout;
+    marca->setSpacing(10);
+    marca->addWidget(crearEtiqueta("δ", "brandMark"));
+    marca->addWidget(crearEtiqueta("DFA LAB", "brand"));
+    marca->addStretch();
+    layout->addLayout(marca);
     layout->addWidget(crearEtiqueta("Laboratorio académico", "brandSub"));
-    layout->addSpacing(28);
+    layout->addSpacing(24);
     layout->addWidget(crearEtiqueta("NAVEGACIÓN", "sectionLabel"));
 
     botonInicio = new QPushButton("Inicio", sidebar);
@@ -136,96 +178,120 @@ QWidget* MainWindow::crearSidebar() {
     layout->addWidget(botonUnion);
     layout->addWidget(botonPruebas);
     layout->addStretch();
-    layout->addWidget(crearEtiqueta("Fase 16\nInterfaz base", "brandSub"));
+    layout->addWidget(crearEtiqueta("Proyecto académico\nC++17 + Qt 6", "brandSub"));
     return sidebar;
 }
 
 QWidget* MainWindow::crearPaginaInicio() {
     QWidget* pagina = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(pagina);
-    layout->setContentsMargins(42, 38, 42, 38);
-    layout->setSpacing(12);
+    layout->setContentsMargins(32, 28, 32, 28);
+    layout->setSpacing(10);
     layout->addWidget(crearEtiqueta("BIENVENIDA", "eyebrow"));
     layout->addWidget(crearEtiqueta("Sistema de Autómatas Finitos Deterministas", "pageTitle"));
     layout->addWidget(crearEtiqueta("Construye, valida y analiza la unión de dos DFA.", "intro"));
-    layout->addSpacing(24);
+    layout->addSpacing(12);
+    QFrame* hero = new QFrame;
+    hero->setObjectName("hero");
+    QVBoxLayout* heroLayout = new QVBoxLayout(hero);
+    heroLayout->setContentsMargins(20, 16, 20, 16);
+    heroLayout->setSpacing(5);
+    heroLayout->addWidget(crearEtiqueta("Crea dos autómatas deterministas", "heroTitle"));
+    heroLayout->addWidget(crearEtiqueta("Después valida, genera la unión y prueba cadenas paso a paso.", "heroText"));
+    layout->addWidget(hero);
+    layout->addSpacing(12);
+    layout->addWidget(crearEtiqueta("FLUJO DE TRABAJO", "eyebrow"));
     QHBoxLayout* tarjetas = new QHBoxLayout;
-    tarjetas->setSpacing(16);
-    tarjetas->addWidget(crearTarjeta("01  Definir", "Configura los estados, el alfabeto y las transiciones de DFA 1 y DFA 2."));
-    tarjetas->addWidget(crearTarjeta("02  Validar", "Comprueba que ambos autómatas cumplen las propiedades formales de un DFA."));
-    tarjetas->addWidget(crearTarjeta("03  Analizar", "Explora la unión y prueba cadenas mediante sus recorridos."));
+    tarjetas->setSpacing(12);
+    tarjetas->addWidget(crearTarjetaFlujo("01", "Definir DFA", "DFA 1 + DFA 2"));
+    tarjetas->addWidget(crearTarjetaFlujo("02", "Validar y unir", "Comprueba y construye"));
+    tarjetas->addWidget(crearTarjetaFlujo("03", "Analizar cadenas", "Explora los recorridos"));
     layout->addLayout(tarjetas);
-    layout->addStretch();
+    layout->addSpacing(12);
+    layout->addWidget(crearEtiqueta("ESTADO DEL PROYECTO", "eyebrow"));
+    layout->addWidget(crearEtiqueta("●  Motor lógico preparado   •   Interfaz gráfica activa", "statusLabel"));
+    layout->addStretch(1);
     return pagina;
 }
 
 QWidget* MainWindow::crearPaginaDFA(const QString& titulo, const QString& subtitulo) {
     QWidget* pagina = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(pagina);
-    layout->setContentsMargins(42, 38, 42, 38);
-    layout->setSpacing(12);
+    layout->setContentsMargins(32, 28, 32, 28);
+    layout->setSpacing(10);
     layout->addWidget(crearEtiqueta("CONFIGURACIÓN", "eyebrow"));
     layout->addWidget(crearEtiqueta(titulo, "pageTitle"));
     layout->addWidget(crearEtiqueta(subtitulo, "pageSub"));
-    layout->addSpacing(24);
+    layout->addSpacing(14);
     QHBoxLayout* fila = new QHBoxLayout;
-    fila->setSpacing(16);
-    fila->addWidget(crearTarjeta("Estados", "Configuración disponible en Fase 17"));
-    fila->addWidget(crearTarjeta("Alfabeto", "Configuración disponible en Fase 17"));
-    fila->addWidget(crearTarjeta("Estado inicial", "Configuración disponible en Fase 17"));
+    fila->setSpacing(12);
+    fila->addWidget(crearTarjeta("Estados\nQ", "Sin definir\nNo se han agregado estados."));
+    fila->addWidget(crearTarjeta("Alfabeto\nΣ", "Sin definir\nNo se han agregado símbolos."));
+    fila->addWidget(crearTarjeta("Estado inicial\nq₀", "Pendiente\nAún no se ha seleccionado."));
     layout->addLayout(fila);
     QHBoxLayout* filaDos = new QHBoxLayout;
-    filaDos->setSpacing(16);
-    filaDos->addWidget(crearTarjeta("Estados finales", "Configuración disponible en Fase 17"));
-    filaDos->addWidget(crearTarjeta("Transiciones", "Configuración disponible en Fase 17"));
+    filaDos->setSpacing(12);
+    filaDos->addWidget(crearTarjeta("Estados finales\nF", "Pendiente\nNo se han definido estados finales."));
+    filaDos->addWidget(crearTarjeta("Transiciones δ", "Pendiente\nLas transiciones se configurarán próximamente."));
     filaDos->addStretch();
     layout->addLayout(filaDos);
-    layout->addStretch();
+    layout->addStretch(1);
     return pagina;
 }
 
 QWidget* MainWindow::crearPaginaUnion() {
     QWidget* pagina = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(pagina);
-    layout->setContentsMargins(42, 38, 42, 38);
-    layout->setSpacing(12);
+    layout->setContentsMargins(32, 28, 32, 28);
+    layout->setSpacing(10);
     layout->addWidget(crearEtiqueta("OPERACIÓN", "eyebrow"));
     layout->addWidget(crearEtiqueta("DFA Unión", "pageTitle"));
-    layout->addWidget(crearEtiqueta("Resultado de la unión de los dos autómatas validados.", "pageSub"));
-    layout->addSpacing(24);
+    layout->addWidget(crearEtiqueta("Construcción mediante producto cartesiano de dos DFA válidos.", "pageSub"));
+    layout->addSpacing(14);
+    QFrame* estado = crearTarjeta("Estado de construcción", "Esperando validación de DFA 1 y DFA 2");
+    layout->addWidget(estado);
     QHBoxLayout* fila = new QHBoxLayout;
-    fila->setSpacing(16);
-    fila->addWidget(crearTarjeta("Estados compuestos", "Preparado para mostrar Q1 × Q2."));
-    fila->addWidget(crearTarjeta("Estado inicial", "Se mostrará el par de estados iniciales."));
-    fila->addWidget(crearTarjeta("Estados finales", "Se mostrarán los pares aceptores."));
+    fila->setSpacing(12);
+    fila->addWidget(crearTarjeta("Estados compuestos", "Q₁ × Q₂\n—"));
+    fila->addWidget(crearTarjeta("Estado inicial", "(q₀₁, q₀₂)\n—"));
+    fila->addWidget(crearTarjeta("Estados finales", "F₁ ∪ F₂ según criterio OR\n—"));
     layout->addLayout(fila);
-    layout->addWidget(crearTarjeta("Tabla de transiciones", "La unión estará disponible después de validar ambos DFA."));
-    layout->addStretch();
+    layout->addWidget(crearTarjeta("Tabla de transiciones", "La tabla aparecerá cuando ambos autómatas sean válidos."));
+    layout->addStretch(1);
     return pagina;
 }
 
 QWidget* MainWindow::crearPaginaPruebas() {
     QWidget* pagina = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(pagina);
-    layout->setContentsMargins(42, 38, 42, 38);
-    layout->setSpacing(12);
+    layout->setContentsMargins(32, 28, 32, 28);
+    layout->setSpacing(10);
     layout->addWidget(crearEtiqueta("SIMULACIÓN", "eyebrow"));
     layout->addWidget(crearEtiqueta("Prueba de cadenas", "pageTitle"));
-    layout->addWidget(crearEtiqueta("Evalúa una cadena en DFA 1, DFA 2 y DFA Unión.", "pageSub"));
-    layout->addSpacing(24);
+    layout->addWidget(crearEtiqueta("Evalúa una secuencia sobre DFA 1, DFA 2 y el DFA Unión.", "pageSub"));
+    layout->addSpacing(14);
+    QFrame* entrada = new QFrame;
+    entrada->setObjectName("card");
+    QHBoxLayout* entradaLayout = new QHBoxLayout(entrada);
+    entradaLayout->setContentsMargins(16, 12, 16, 12);
+    entradaLayout->setSpacing(10);
+    QLineEdit* campoCadena = new QLineEdit;
+    campoCadena->setPlaceholderText("Ejemplo: a b a b");
+    QPushButton* botonEvaluar = new QPushButton("Evaluar cadena");
+    botonEvaluar->setObjectName("primaryButton");
+    botonEvaluar->setEnabled(false);
+    botonEvaluar->setToolTip("Disponible después de configurar y validar ambos DFA.");
+    entradaLayout->addWidget(campoCadena, 1);
+    entradaLayout->addWidget(botonEvaluar);
+    layout->addWidget(entrada);
     QHBoxLayout* fila = new QHBoxLayout;
-    fila->setSpacing(16);
-    fila->addWidget(crearTarjeta("Entrada de cadena", "Disponible en Fase 17"));
-    fila->addWidget(crearTarjeta("Trazabilidad", "Disponible en Fase 17"));
-    fila->addStretch();
+    fila->setSpacing(12);
+    fila->addWidget(crearTarjeta("DFA 1", "Sin evaluar"));
+    fila->addWidget(crearTarjeta("DFA 2", "Sin evaluar"));
+    fila->addWidget(crearTarjeta("DFA Unión", "Sin evaluar"));
     layout->addLayout(fila);
-    QHBoxLayout* resultados = new QHBoxLayout;
-    resultados->setSpacing(16);
-    resultados->addWidget(crearTarjeta("Resultado DFA 1", "Pendiente de conexión con el motor."));
-    resultados->addWidget(crearTarjeta("Resultado DFA 2", "Pendiente de conexión con el motor."));
-    resultados->addWidget(crearTarjeta("Resultado DFA Unión", "Pendiente de conexión con el motor."));
-    layout->addLayout(resultados);
-    layout->addStretch();
+    layout->addWidget(crearTarjeta("Trazabilidad", "No hay una simulación activa."));
+    layout->addStretch(1);
     return pagina;
 }
 
