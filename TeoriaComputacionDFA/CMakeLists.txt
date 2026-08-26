@@ -20,6 +20,8 @@ add_executable(SistemaDFA
 	src/operaciones/ProductoCartesiano.cpp
 	src/reportes/VisualizadorDFAUnion.cpp
 	src/reportes/VisualizadorTrazabilidad.cpp
+	src/reportes/VisualizadorVeredictoTriple.cpp
+	src/simulacion/EvaluadorTriple.cpp
 	src/simulacion/SimuladorDFA.cpp
 	src/simulacion/SimuladorDFAUnion.cpp
 	src/estructuras/ListaEstados.cpp

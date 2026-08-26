@@ -155,8 +155,24 @@ FASE 14:
 - Soporte de cadena vacia.
 - Soporte de simulacion detenida por simbolo invalido.
 
+FASE 15:
+- ResultadoTriple.
+- EvaluadorTriple.
+- Evaluacion simultanea DFA1/DFA2/DFAUnion.
+- Veredicto triple.
+- Estados finales alcanzados.
+- Diferenciacion entre RECHAZADA y NO PROCESABLE.
+- Deteccion manual del simbolo invalido real.
+- Comprobacion Union = DFA1 OR DFA2.
+
+## Interfaz grafica pendiente
+El producto final utilizara Qt 6 + Qt Widgets.
+
+Las siguientes fases estaran orientadas a construir la interfaz grafica.
+Qt se utilizara para presentacion e interaccion con el usuario.
+Qt NO sustituira las estructuras manuales del proyecto.
+No se utilizaran colecciones Qt para almacenar los automatas.
+
 Todavia NO estan implementados:
-- Veredicto triple integrado.
-- Veredicto triple definitivo.
 - Entrada interactiva definitiva.
 - Menu final.

@@ -9,11 +9,14 @@
 #include "operaciones/ProductoCartesiano.h"
 #include "reportes/VisualizadorDFAUnion.h"
 #include "reportes/VisualizadorTrazabilidad.h"
+#include "reportes/VisualizadorVeredictoTriple.h"
 #include "estructuras/CadenaEntrada.h"
 #include "estructuras/ListaEstadosCompuestos.h"
 #include "estructuras/ListaPasosDFA.h"
 #include "estructuras/ListaPasosDFAUnion.h"
 #include "estructuras/ListaTransicionesCompuestas.h"
+#include "simulacion/EvaluadorTriple.h"
+#include "simulacion/ResultadoTriple.h"
 #include "simulacion/SimuladorDFA.h"
 #include "simulacion/SimuladorDFAUnion.h"
 #include "validacion/ListaErrores.h"
@@ -525,7 +528,7 @@ void ejecutarCasoSimulacion(const std::string& nombreCadena,
                           estadoFinalUnionDFA2);
 
     if (!procesableDFA1 || !procesableDFA2 || !procesableUnion) {
-        std::cout << "CADENA NO PROCESABLE: el simbolo 'x' no pertenece al alfabeto."
+        std::cout << "CADENA NO PROCESABLE: existe un simbolo fuera del alfabeto."
                   << std::endl;
     }
 
@@ -718,6 +721,96 @@ void ejecutarPruebaPrincipalFase14(const DFA& dfa1, const DFA& dfa2,
                              simuladorDFA, simuladorUnion, visualizador);
 }
 
+void ejecutarCasoVeredictoTriple(const std::string& nombreCadena,
+                                 const CadenaEntrada& cadena,
+                                 const DFA& dfa1,
+                                 const DFA& dfa2,
+                                 const DFAUnion& dfaUnion,
+                                 const EvaluadorTriple& evaluador,
+                                 const VisualizadorVeredictoTriple& visualizador) {
+    std::cout << "Cadena de prueba con veredicto triple: " << nombreCadena
+              << std::endl;
+
+    ResultadoTriple resultado;
+    evaluador.evaluar(dfa1, dfa2, dfaUnion, cadena, resultado);
+    visualizador.mostrar(cadena, resultado);
+
+    if (resultado.procesable) {
+        std::cout << "Union == (DFA1 || DFA2): "
+                  << (resultado.unionConsistente ? "SI" : "NO") << std::endl;
+    }
+
+    std::cout << std::endl;
+}
+
+void ejecutarPruebaPrincipalFase15(const DFA& dfa1, const DFA& dfa2,
+                                   const ValidadorDFA& validador,
+                                   const CompatibilidadDFA& compatibilidad,
+                                   const ConstructorDFAUnion& constructorUnion,
+                                   ListaErrores& erroresValidacion,
+                                   ListaErrores& erroresCompatibilidad) {
+    std::cout << "PRUEBA PRINCIPAL FASE 15 - VEREDICTO TRIPLE DE CADENAS"
+              << std::endl;
+
+    bool bloqueoPorInvalidez = false;
+    bool bloqueoPorIncompatibilidad = false;
+
+    if (!verificarValidezYCompatibilidad(dfa1, dfa2, validador, compatibilidad,
+                                         erroresValidacion, erroresCompatibilidad,
+                                         bloqueoPorInvalidez,
+                                         bloqueoPorIncompatibilidad)) {
+        std::cout << "VEREDICTO TRIPLE BLOQUEADO." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    DFAUnion dfaUnion;
+    bool construido = constructorUnion.construir(dfa1, dfa2, dfaUnion);
+
+    if (!construido) {
+        std::cout << "ERROR: no fue posible construir el DFA Union." << std::endl;
+        std::cout << std::endl;
+        return;
+    }
+
+    EvaluadorTriple evaluador;
+    VisualizadorVeredictoTriple visualizador;
+
+    CadenaEntrada cadenaA;
+    cadenaA.agregarSimbolo("a");
+    ejecutarCasoVeredictoTriple("a", cadenaA, dfa1, dfa2, dfaUnion, evaluador,
+                                visualizador);
+
+    CadenaEntrada cadenaAA;
+    cadenaAA.agregarSimbolo("a");
+    cadenaAA.agregarSimbolo("a");
+    ejecutarCasoVeredictoTriple("aa", cadenaAA, dfa1, dfa2, dfaUnion,
+                                evaluador, visualizador);
+
+    CadenaEntrada cadenaB;
+    cadenaB.agregarSimbolo("b");
+    ejecutarCasoVeredictoTriple("b", cadenaB, dfa1, dfa2, dfaUnion, evaluador,
+                                visualizador);
+
+    CadenaEntrada cadenaAAB;
+    cadenaAAB.agregarSimbolo("a");
+    cadenaAAB.agregarSimbolo("a");
+    cadenaAAB.agregarSimbolo("b");
+    ejecutarCasoVeredictoTriple("aab", cadenaAAB, dfa1, dfa2, dfaUnion,
+                                evaluador, visualizador);
+
+    CadenaEntrada cadenaInvalida;
+    cadenaInvalida.agregarSimbolo("a");
+    cadenaInvalida.agregarSimbolo("z");
+    cadenaInvalida.agregarSimbolo("b");
+    ejecutarCasoVeredictoTriple("a z b", cadenaInvalida, dfa1, dfa2, dfaUnion,
+                                evaluador, visualizador);
+
+    CadenaEntrada cadenaVacia;
+    ejecutarCasoVeredictoTriple("epsilon", cadenaVacia, dfa1, dfa2, dfaUnion,
+                                evaluador, visualizador);
+}
+
 int main() {
     ValidadorDFA validador;
     CompatibilidadDFA compatibilidad;
@@ -761,6 +854,10 @@ int main() {
                                   erroresValidacion, erroresCompatibilidad);
 
     ejecutarPruebaPrincipalFase14(dfa1Principal, dfa2Principal, validador,
+                                  compatibilidad, constructorUnion,
+                                  erroresValidacion, erroresCompatibilidad);
+
+    ejecutarPruebaPrincipalFase15(dfa1Principal, dfa2Principal, validador,
                                   compatibilidad, constructorUnion,
                                   erroresValidacion, erroresCompatibilidad);
 
