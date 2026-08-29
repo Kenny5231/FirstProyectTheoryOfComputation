@@ -26,6 +26,8 @@ public:
     bool agregarSimbolo(const std::string& simbolo);
     bool agregarTransicion(const std::string& origen, const std::string& simbolo,
                            const std::string& destino);
+    bool eliminarTransicion(const std::string& origen, const std::string& simbolo,
+                            const std::string& destino);
 
     void establecerEstadoInicial(const std::string& nombre);
     bool tieneEstadoInicial() const;

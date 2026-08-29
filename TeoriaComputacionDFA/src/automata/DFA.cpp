@@ -17,6 +17,11 @@ bool DFA::agregarTransicion(const std::string& origen, const std::string& simbol
     return transiciones.insertar(origen, simbolo, destino);
 }
 
+bool DFA::eliminarTransicion(const std::string& origen, const std::string& simbolo,
+                             const std::string& destino) {
+    return transiciones.eliminarTransicionExacta(origen, simbolo, destino);
+}
+
 void DFA::establecerEstadoInicial(const std::string& nombre) {
     estadoInicial = nombre;
     estadoInicialDefinido = true;

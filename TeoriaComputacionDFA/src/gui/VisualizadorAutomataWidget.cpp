@@ -36,6 +36,39 @@ QPointF puntoBorde(double x, double y, double diametro, double angulo) {
     const double radio = diametro / 2.0;
     return QPointF(x + radio * std::cos(angulo), y + radio * std::sin(angulo));
 }
+
+bool mismaPareja(const std::string& o1, const std::string& d1,
+                 const std::string& o2, const std::string& d2) {
+    return (o1 == o2 && d1 == d2) || (o1 == d2 && d1 == o2);
+}
+
+bool transicionMenorEnPareja(const std::string& o1, const std::string& s1, const std::string& d1,
+                             const std::string& o2, const std::string& s2, const std::string& d2) {
+    if (o1 != o2) return o1 < o2;
+    if (s1 != s2) return s1 < s2;
+    return d1 < d2;
+}
+
+bool mismaParejaCompuesta(const std::string& o11, const std::string& o12,
+                          const std::string& d11, const std::string& d12,
+                          const std::string& o21, const std::string& o22,
+                          const std::string& d21, const std::string& d22) {
+    const bool iguales = o11 == o21 && o12 == o22 && d11 == d21 && d12 == d22;
+    const bool inversas = o11 == d21 && o12 == d22 && d11 == o21 && d12 == o22;
+    return iguales || inversas;
+}
+
+bool transicionMenorEnParejaCompuesta(const std::string& o11, const std::string& o12,
+                                      const std::string& s1, const std::string& d11,
+                                      const std::string& d12, const std::string& o21,
+                                      const std::string& o22, const std::string& s2,
+                                      const std::string& d21, const std::string& d22) {
+    if (o11 != o21) return o11 < o21;
+    if (o12 != o22) return o12 < o22;
+    if (s1 != s2) return s1 < s2;
+    if (d11 != d21) return d11 < d21;
+    return d12 < d22;
+}
 }
 
 VisualizadorAutomataWidget::VisualizadorAutomataWidget(QWidget* parent)
@@ -110,14 +143,22 @@ void VisualizadorAutomataWidget::mostrarDFA(const DFA& dfa) {
         const NodoPosicionEstado* origen = posiciones.buscar(transicion->origen);
         const NodoPosicionEstado* destino = posiciones.buscar(transicion->destino);
         if (origen != nullptr && destino != nullptr) {
-            bool inversa = false;
+            int totalVariantes = 0;
+            int variante = 0;
             const NodoTransicion* candidata = dfa.obtenerTransiciones().obtenerPrimero();
             while (candidata != nullptr) {
-                if (candidata->origen == transicion->destino && candidata->destino == transicion->origen) inversa = true;
+                if (mismaPareja(candidata->origen, candidata->destino,
+                                transicion->origen, transicion->destino)) {
+                    ++totalVariantes;
+                    if (transicionMenorEnPareja(candidata->origen, candidata->simbolo, candidata->destino,
+                                                transicion->origen, transicion->simbolo, transicion->destino)) {
+                        ++variante;
+                    }
+                }
                 candidata = candidata->siguiente;
             }
             const bool resaltada = transicion->origen == origenResaltado && transicion->simbolo == simboloResaltado && transicion->destino == destinoResaltado;
-            dibujarArista(origen->x, origen->y, destino->x, destino->y, QString::fromStdString(transicion->simbolo), inversa && transicion->origen < transicion->destino, origen->estado == destino->estado, resaltada, NODE_DIAMETER);
+            dibujarArista(origen->x, origen->y, destino->x, destino->y, QString::fromStdString(transicion->simbolo), origen->estado == destino->estado, resaltada, NODE_DIAMETER, totalVariantes, variante);
         }
         transicion = transicion->siguiente;
     }
@@ -153,8 +194,27 @@ void VisualizadorAutomataWidget::mostrarDFAUnion(const DFAUnion& dfaUnion) {
         const NodoPosicionEstadoCompuesto* origen = posicionesCompuestas.buscar(transicion->origenDFA1, transicion->origenDFA2);
         const NodoPosicionEstadoCompuesto* destino = posicionesCompuestas.buscar(transicion->destinoDFA1, transicion->destinoDFA2);
         if (origen != nullptr && destino != nullptr) {
+            int totalVariantes = 0;
+            int variante = 0;
+            const NodoTransicionCompuesta* candidata = dfaUnion.obtenerTransiciones().obtenerPrimero();
+            while (candidata != nullptr) {
+                if (mismaParejaCompuesta(candidata->origenDFA1, candidata->origenDFA2,
+                                         candidata->destinoDFA1, candidata->destinoDFA2,
+                                         transicion->origenDFA1, transicion->origenDFA2,
+                                         transicion->destinoDFA1, transicion->destinoDFA2)) {
+                    ++totalVariantes;
+                    if (transicionMenorEnParejaCompuesta(
+                            candidata->origenDFA1, candidata->origenDFA2, candidata->simbolo,
+                            candidata->destinoDFA1, candidata->destinoDFA2,
+                            transicion->origenDFA1, transicion->origenDFA2, transicion->simbolo,
+                            transicion->destinoDFA1, transicion->destinoDFA2)) {
+                        ++variante;
+                    }
+                }
+                candidata = candidata->siguiente;
+            }
             const bool resaltada = transicion->origenDFA1 == origenUnion1 && transicion->origenDFA2 == origenUnion2 && transicion->simbolo == simboloUnion && transicion->destinoDFA1 == destinoUnion1 && transicion->destinoDFA2 == destinoUnion2;
-            dibujarArista(origen->x, origen->y, destino->x, destino->y, QString::fromStdString(transicion->simbolo), false, origen == destino, resaltada, 86.0);
+            dibujarArista(origen->x, origen->y, destino->x, destino->y, QString::fromStdString(transicion->simbolo), origen == destino, resaltada, 86.0, totalVariantes, variante);
         }
         transicion = transicion->siguiente;
     }
@@ -198,54 +258,129 @@ void VisualizadorAutomataWidget::dibujarFlechaEntrada(double x, double y, double
     flecha->setZValue(0);
 }
 
-void VisualizadorAutomataWidget::dibujarArista(double x1, double y1, double x2, double y2, const QString& simbolo, bool curvaArriba, bool loop, bool resaltada, double diametro) {
+void VisualizadorAutomataWidget::dibujarPuntaFlecha(const QPointF& punta, double anguloGrados,
+                                                    const QPen& pen, double tamano) {
+    const double angulo = anguloGrados * PI / 180.0;
+    QPolygonF cabeza;
+    cabeza << punta
+           << QPointF(punta.x() - tamano * std::cos(angulo - 0.42),
+                      punta.y() - tamano * std::sin(angulo - 0.42))
+           << QPointF(punta.x() - tamano * std::cos(angulo + 0.42),
+                      punta.y() - tamano * std::sin(angulo + 0.42));
+    QGraphicsPolygonItem* item = escena->addPolygon(cabeza, QPen(pen.color(), 1.2), QBrush(pen.color()));
+    item->setZValue(1);
+}
+
+void VisualizadorAutomataWidget::dibujarArista(double x1, double y1, double x2, double y2,
+                                               const QString& simbolo, bool loop, bool resaltada,
+                                               double diametro, int totalVariantes, int variante) {
     QPen pen(resaltada ? QColor("#16A34A") : QColor("#64748B"), resaltada ? 3 : 2);
     QPainterPath camino;
+    QPointF punta;
+    double etiquetaX = 0.0;
+    double etiquetaY = 0.0;
+
     if (loop) {
-        camino.moveTo(x1 - diametro * 0.25, y1 - diametro * 0.35);
-        camino.cubicTo(x1 - diametro * 0.9, y1 - diametro * 1.2, x1 + diametro * 0.9, y1 - diametro * 1.2, x1 + diametro * 0.25, y1 - diametro * 0.35);
+        const double radio = diametro / 2.0;
+        const int region = variante % 4;
+        const double ciclo = static_cast<double>(variante / 4);
+        const double escala = 1.0 + 0.4 * ciclo;
+        double anguloInicio = 0.0;
+        double anguloFin = 0.0;
+        double dxControl1 = 0.0, dyControl1 = 0.0, dxControl2 = 0.0, dyControl2 = 0.0;
+        switch (region) {
+        case 0:
+            anguloInicio = 205.0; anguloFin = 335.0;
+            dxControl1 = -0.4; dyControl1 = -2.2;
+            dxControl2 = 0.4; dyControl2 = -2.2;
+            break;
+        case 1:
+            anguloInicio = 25.0; anguloFin = 155.0;
+            dxControl1 = 0.4; dyControl1 = 2.2;
+            dxControl2 = -0.4; dyControl2 = 2.2;
+            break;
+        case 2:
+            anguloInicio = 100.0; anguloFin = 260.0;
+            dxControl1 = -2.2; dyControl1 = 0.4;
+            dxControl2 = -2.2; dyControl2 = -0.4;
+            break;
+        default:
+            anguloInicio = 280.0; anguloFin = 80.0;
+            dxControl1 = 2.2; dyControl1 = -0.4;
+            dxControl2 = 2.2; dyControl2 = 0.4;
+            break;
+        }
+        const double radInicio = anguloInicio * PI / 180.0;
+        const double radFin = anguloFin * PI / 180.0;
+        const QPointF inicio(x1 + radio * std::cos(radInicio), y1 + radio * std::sin(radInicio));
+        const QPointF fin(x1 + radio * std::cos(radFin), y1 + radio * std::sin(radFin));
+        const double ext = radio * 2.2 * escala;
+        const QPointF control1(x1 + dxControl1 * ext, y1 + dyControl1 * ext);
+        const QPointF control2(x1 + dxControl2 * ext, y1 + dyControl2 * ext);
+        camino.moveTo(inicio);
+        camino.cubicTo(control1, control2, fin);
+        punta = fin;
+        const double extEtiqueta = radio * 2.4 * escala;
+        switch (region) {
+        case 0:
+            etiquetaX = x1; etiquetaY = y1 - extEtiqueta;
+            break;
+        case 1:
+            etiquetaX = x1; etiquetaY = y1 + extEtiqueta;
+            break;
+        case 2:
+            etiquetaX = x1 - extEtiqueta; etiquetaY = y1;
+            break;
+        default:
+            etiquetaX = x1 + extEtiqueta; etiquetaY = y1;
+            break;
+        }
     } else {
         const double dx = x2 - x1;
         const double dy = y2 - y1;
         const double distancia = std::sqrt(dx * dx + dy * dy);
+        if (distancia < 1.0e-9) return;
         const double angulo = std::atan2(dy, dx);
         const QPointF inicio = puntoBorde(x1, y1, diametro, angulo);
         const QPointF fin = puntoBorde(x2, y2, diametro, angulo + PI);
-        camino.moveTo(inicio);
-        if (curvaArriba) {
-            const QPointF control((x1 + x2) / 2.0, (y1 + y2) / 2.0 - 38.0);
-            camino.quadTo(control, fin);
-        } else {
-            camino.lineTo(fin);
+        const QPointF puntoMedio((inicio.x() + fin.x()) / 2.0, (inicio.y() + fin.y()) / 2.0);
+        double px = -dy / distancia;
+        double py = dx / distancia;
+        if (py > 0.0 || (py == 0.0 && px < 0.0)) {
+            px = -px;
+            py = -py;
         }
-        Q_UNUSED(distancia);
+        const double separacion = totalVariantes > 1 ? 42.0 : 0.0;
+        const double desvio = (variante - (static_cast<double>(totalVariantes) - 1.0) / 2.0) * separacion;
+        const QPointF control(puntoMedio.x() + px * desvio, puntoMedio.y() + py * desvio);
+        camino.moveTo(inicio);
+        if (desvio == 0.0) {
+            camino.lineTo(fin);
+        } else {
+            camino.quadTo(control, fin);
+        }
+        punta = fin;
+        double desplazamientoEtiqueta = 16.0;
+        if (desvio > 0.0) desplazamientoEtiqueta = desvio + 20.0;
+        else if (desvio < 0.0) desplazamientoEtiqueta = desvio - 20.0;
+        etiquetaX = puntoMedio.x() + px * desplazamientoEtiqueta;
+        etiquetaY = puntoMedio.y() + py * desplazamientoEtiqueta;
     }
+
     QGraphicsPathItem* arista = escena->addPath(camino, pen);
     arista->setZValue(0);
-    QPointF punta = loop ? QPointF(x1 + diametro * 0.25, y1 - diametro * 0.35) : camino.pointAtPercent(1.0);
-    QGraphicsLineItem* marca = escena->addLine(punta.x() - 8, punta.y() - 5, punta.x(), punta.y(), pen);
-    QGraphicsLineItem* marcaInferior = escena->addLine(punta.x() - 8, punta.y() + 5, punta.x(), punta.y(), pen);
-    marca->setZValue(0);
-    marcaInferior->setZValue(0);
-    Q_UNUSED(marca);
+    dibujarPuntaFlecha(punta, camino.angleAtPercent(1.0), pen, 12.0);
+
     QGraphicsTextItem* texto = escena->addText(simbolo);
     texto->setDefaultTextColor(resaltada ? QColor("#15803D") : QColor("#334155"));
     const QRectF rectTexto = texto->boundingRect();
-    double textoX = 0.0;
-    double textoY = 0.0;
-    if (loop) {
-        textoX = x1 - rectTexto.width() / 2.0;
-        textoY = y1 - diametro * 1.45 - rectTexto.height() / 2.0;
-    } else {
-        const double puntoMedioX = (x1 + x2) / 2.0;
-        const double puntoMedioY = (y1 + y2) / 2.0;
-        textoX = puntoMedioX - rectTexto.width() / 2.0;
-        textoY = puntoMedioY - rectTexto.height() / 2.0 - (curvaArriba ? 38.0 : 12.0);
-    }
-    const QRectF fondo = QRectF(textoX, textoY, rectTexto.width(), rectTexto.height()).adjusted(-4, -2, 4, 2);
+    const QPointF posicionEtiqueta(etiquetaX - rectTexto.width() / 2.0,
+                                   etiquetaY - rectTexto.height() / 2.0);
+    const QRectF fondo = QRectF(posicionEtiqueta.x(), posicionEtiqueta.y(),
+                                rectTexto.width(), rectTexto.height()).adjusted(-4, -2, 4, 2);
     QGraphicsRectItem* fondoEtiqueta = escena->addRect(fondo, QPen(QColor("#E2E8F0")), QBrush(QColor("#FFFFFF")));
     fondoEtiqueta->setZValue(1);
-    texto->setPos(textoX, textoY);
+    texto->setPos(posicionEtiqueta);
     texto->setZValue(2);
 }
 

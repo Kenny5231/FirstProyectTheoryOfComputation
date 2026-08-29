@@ -43,6 +43,8 @@ private:
     void establecerInicial();
     void agregarFinal();
     void agregarTransicion();
+    void eliminarTransicion(const QString& origen, const QString& simbolo,
+                            const QString& destino);
     void validarDFA();
     void invalidarValidacion();
 

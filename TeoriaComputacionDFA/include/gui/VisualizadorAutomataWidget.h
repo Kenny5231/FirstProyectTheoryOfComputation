@@ -9,6 +9,8 @@
 
 class DFA;
 class DFAUnion;
+class QPointF;
+class QPen;
 class QGraphicsScene;
 class QGraphicsView;
 
@@ -34,7 +36,8 @@ private:
     void dibujarUnion(const DFAUnion& dfaUnion);
     void dibujarEstado(double x, double y, const QString& nombre, bool inicial, bool final, double diametro);
     void dibujarArista(double x1, double y1, double x2, double y2, const QString& simbolo,
-                       bool curvaArriba, bool loop, bool resaltada, double diametro);
+                       bool loop, bool resaltada, double diametro, int totalVariantes, int variante);
+    void dibujarPuntaFlecha(const QPointF& punta, double anguloGrados, const QPen& pen, double tamano);
     void dibujarFlechaEntrada(double x, double y, double diametro);
     void limpiarResaltado();
     void aplicarResaltadoDFA();

@@ -262,11 +262,14 @@ void EditorDFAWidget::crearInterfaz(const QString& titulo, const QString& descri
         layoutTransiciones->addLayout(transicionesLayout);
     }
     tablaTransiciones = new QTableWidget;
-    tablaTransiciones->setColumnCount(3);
+    tablaTransiciones->setColumnCount(4);
     tablaTransiciones->setHorizontalHeaderItem(0, new QTableWidgetItem("Origen"));
     tablaTransiciones->setHorizontalHeaderItem(1, new QTableWidgetItem("Símbolo"));
     tablaTransiciones->setHorizontalHeaderItem(2, new QTableWidgetItem("Destino"));
+    tablaTransiciones->setHorizontalHeaderItem(3, new QTableWidgetItem("Eliminar"));
     tablaTransiciones->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tablaTransiciones->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+    tablaTransiciones->setColumnWidth(3, 92);
     tablaTransiciones->verticalHeader()->setVisible(false);
     tablaTransiciones->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tablaTransiciones->setSelectionMode(QAbstractItemView::NoSelection);
@@ -296,6 +299,19 @@ bool EditorDFAWidget::estaValidado() const {
 
 bool EditorDFAWidget::esDFAValido() const {
     return validacionRealizada && dfaValido;
+}
+
+void EditorDFAWidget::eliminarTransicion(const QString& origen, const QString& simbolo,
+                                         const QString& destino) {
+    if (dfa->eliminarTransicion(origen.toStdString(), simbolo.toStdString(),
+                                destino.toStdString())) {
+        invalidarValidacion();
+        mostrarMensaje(QString("Transición %1 --%2--> %3 eliminada.").arg(origen, simbolo, destino),
+                       false);
+        refrescarInterfaz();
+    } else {
+        mostrarMensaje("No fue posible eliminar la transición.", true);
+    }
 }
 
 void EditorDFAWidget::validarDFA() {
@@ -412,9 +428,19 @@ void EditorDFAWidget::refrescarTabla() {
     const NodoTransicion* actual = dfa->obtenerTransiciones().obtenerPrimero();
     int fila = 0;
     while (actual != nullptr) {
-        tablaTransiciones->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(actual->origen)));
-        tablaTransiciones->setItem(fila, 1, new QTableWidgetItem(QString::fromStdString(actual->simbolo)));
-        tablaTransiciones->setItem(fila, 2, new QTableWidgetItem(QString::fromStdString(actual->destino)));
+        const QString origen = QString::fromStdString(actual->origen);
+        const QString simbolo = QString::fromStdString(actual->simbolo);
+        const QString destino = QString::fromStdString(actual->destino);
+        tablaTransiciones->setItem(fila, 0, new QTableWidgetItem(origen));
+        tablaTransiciones->setItem(fila, 1, new QTableWidgetItem(simbolo));
+        tablaTransiciones->setItem(fila, 2, new QTableWidgetItem(destino));
+        QPushButton* botonEliminar = new QPushButton("Eliminar");
+        botonEliminar->setObjectName("editorActionButton");
+        botonEliminar->setCursor(Qt::PointingHandCursor);
+        botonEliminar->setToolTip(QString("Eliminar %1 --%2--> %3").arg(origen, simbolo, destino));
+        connect(botonEliminar, &QPushButton::clicked, this,
+                [this, origen, simbolo, destino]() { eliminarTransicion(origen, simbolo, destino); });
+        tablaTransiciones->setCellWidget(fila, 3, botonEliminar);
         actual = actual->siguiente;
         ++fila;
     }
