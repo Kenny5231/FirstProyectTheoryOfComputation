@@ -50,6 +50,7 @@ private:
                        const std::string& simbolo,
                        std::string& destinoDFA1,
                        std::string& destinoDFA2) const;
+    QString construirProcedimientoConstruccionUnion() const;
 
     DFA* dfa1;
     DFA* dfa2;
@@ -74,6 +75,7 @@ private:
     QTableWidget* tablaTransiciones;
     QPushButton* botonGenerar;
     VisualizadorAutomataWidget* visualizadorUnion;
+    QPlainTextEdit* procedimientoUnion;
 };
 
 #endif

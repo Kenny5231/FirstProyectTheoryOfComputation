@@ -76,7 +76,8 @@ VistaUnionDFAWidget::VistaUnionDFAWidget(DFA& dfa1Referencia, DFA& dfa2Referenci
       panelErrores(nullptr),
       tablaTransiciones(nullptr),
     botonGenerar(nullptr),
-    visualizadorUnion(nullptr) {
+    visualizadorUnion(nullptr),
+    procedimientoUnion(nullptr) {
     crearInterfaz();
     conectarEventos();
     actualizarDisponibilidad();
@@ -176,6 +177,21 @@ void VistaUnionDFAWidget::crearInterfaz() {
     tablaTransiciones->setMinimumHeight(180);
     tablaLayout->addWidget(tablaTransiciones);
     principal->addWidget(tablaMarco);
+
+    QFrame* procedimientoMarco = new QFrame;
+    procedimientoMarco->setObjectName("unionCard");
+    QVBoxLayout* procedimientoLayout = new QVBoxLayout(procedimientoMarco);
+    procedimientoLayout->setContentsMargins(18, 16, 18, 16);
+    procedimientoLayout->addWidget(etiqueta("PROCEDIMIENTO DE CONSTRUCCIÓN DE δU", "unionSectionTitle"));
+    procedimientoUnion = new QPlainTextEdit;
+    procedimientoUnion->setReadOnly(true);
+    procedimientoUnion->setObjectName("testTrace");
+    procedimientoUnion->setPlaceholderText(
+        "Las transiciones del DFA Unión explicadas mediante sus dos componentes aparecerán aquí.");
+    procedimientoUnion->setMinimumHeight(220);
+    procedimientoLayout->addWidget(procedimientoUnion);
+    principal->addWidget(procedimientoMarco);
+
     estadoResultadoLabel = etiqueta("La unión aún no ha sido generada.", "unionMessage");
     principal->addWidget(estadoResultadoLabel);
     principal->addStretch(1);
@@ -294,6 +310,7 @@ void VistaUnionDFAWidget::limpiarResultado() {
     tablaTransiciones->clear();
     tablaTransiciones->setRowCount(0);
     tablaTransiciones->setColumnCount(0);
+    procedimientoUnion->clear();
     estadoResultadoLabel->setText("La unión aún no ha sido generada.");
     estadoAlfabetosLabel->style()->unpolish(estadoAlfabetosLabel);
     estadoAlfabetosLabel->style()->polish(estadoAlfabetosLabel);
@@ -350,6 +367,7 @@ void VistaUnionDFAWidget::actualizarResultado() {
     finalesLabel->setText(textoFinales());
     estadoResultadoLabel->setText("La construcción utiliza los DFA validados como fuente de datos.");
     reconstruirTabla();
+    procedimientoUnion->setPlainText(construirProcedimientoConstruccionUnion());
 }
 
 bool VistaUnionDFAWidget::buscarDestino(const std::string& origenDFA1,
@@ -411,4 +429,38 @@ void VistaUnionDFAWidget::reconstruirTabla() {
         estado = estado->siguiente;
         ++fila;
     }
+}
+
+QString VistaUnionDFAWidget::construirProcedimientoConstruccionUnion() const {
+    QString texto;
+
+    texto += "Definición del DFA Unión:\n";
+    texto += "  QU = Q1 × Q2\n";
+    texto += "  ΣU = Σ\n";
+    texto += "  q0U = (" + QString::fromStdString(dfaUnion->obtenerEstadoInicialDFA1()) + ", " +
+             QString::fromStdString(dfaUnion->obtenerEstadoInicialDFA2()) + ")\n";
+    texto += "  FU = { (p,q) | p ∈ F1 o q ∈ F2 }\n";
+    texto += "  δU((p,q),a) = (δ1(p,a), δ2(q,a))\n\n";
+
+    texto += "Construcción de las transiciones:\n\n";
+
+    const NodoTransicionCompuesta* transicion =
+        dfaUnion->obtenerTransiciones().obtenerPrimero();
+
+    while (transicion != nullptr) {
+        const QString origen = "(" + QString::fromStdString(transicion->origenDFA1) + "," +
+                               QString::fromStdString(transicion->origenDFA2) + ")";
+        const QString destino = "(" + QString::fromStdString(transicion->destinoDFA1) + "," +
+                                QString::fromStdString(transicion->destinoDFA2) + ")";
+        const QString simbolo = QString::fromStdString(transicion->simbolo);
+
+        texto += "δU(" + origen + "," + simbolo + ")\n";
+        texto += "= (δ1(" + QString::fromStdString(transicion->origenDFA1) + "," + simbolo +
+                 "), δ2(" + QString::fromStdString(transicion->origenDFA2) + "," + simbolo + "))\n";
+        texto += "= " + destino + "\n\n";
+
+        transicion = transicion->siguiente;
+    }
+
+    return texto;
 }
