@@ -4,19 +4,18 @@
 #include <QWidget>
 #include <string>
 
-#include "estructuras/ListaPasosDFAUnion.h"
+#include "estructuras/ListaPasosDFA.h"
 
 class CadenaEntrada;
 class DFA;
-class DFAUnion;
 class EditorDFAWidget;
 class ListaPasosDFA;
-class ListaPasosDFAUnion;
+class NodoPasoDFA;
+class QComboBox;
 class QLabel;
 class QLineEdit;
 class QPlainTextEdit;
 class QPushButton;
-class VistaUnionDFAWidget;
 class VisualizadorAutomataWidget;
 
 class VistaPruebaCadenaWidget : public QWidget {
@@ -24,7 +23,6 @@ public:
     VistaPruebaCadenaWidget(DFA& dfa1, DFA& dfa2,
                             EditorDFAWidget* editorDFA1,
                             EditorDFAWidget* editorDFA2,
-                            VistaUnionDFAWidget* vistaUnion,
                             QWidget* parent = nullptr);
 
     void actualizarDisponibilidad();
@@ -33,46 +31,37 @@ public:
 private:
     void crearInterfaz();
     void conectarEventos();
-    void construirCadenaEntrada(const QString& texto, CadenaEntrada& cadena) const;
+    void construirCadenaEntrada(const QString& texto, const DFA& dfa, CadenaEntrada& cadena) const;
     void evaluarCadena();
     void limpiarResultados();
-    QString construirTextoTrazaDFA(const DFA& dfa, const ListaPasosDFA& pasos,
-                                   bool procesable, bool aceptada,
-                                   const std::string& estadoFinal) const;
-    QString construirTextoTrazaUnion(const DFAUnion& dfaUnion,
-                                     const ListaPasosDFAUnion& pasos,
-                                     bool procesable, bool aceptada,
-                                     const std::string& estadoFinalDFA1,
-                                     const std::string& estadoFinalDFA2) const;
-    void actualizarEstiloResultado(QLabel* etiqueta, const QString& estado,
-                                   bool error);
-    const NodoPasoDFAUnion* obtenerPasoUnion(int indice) const;
+    DFA* obtenerDFASeleccionado() const;
+    EditorDFAWidget* obtenerEditorSeleccionado() const;
+    const NodoPasoDFA* obtenerPasoDFA(int indice) const;
+    bool todosSimbolosSonDeUnCaracter(const DFA& dfa) const;
+    QString construirProcedimientoFormal(const DFA& dfa, const CadenaEntrada& cadena,
+                                         const ListaPasosDFA& pasos, bool procesable,
+                                         bool aceptada, const std::string& estadoFinal) const;
+    QString construirRecorridoSimple(const ListaPasosDFA& pasos) const;
+    void actualizarEstiloResultado(QLabel* etiqueta, const QString& estado, bool error);
     void actualizarRecorrido();
+    void cambiarDFASeleccionado();
 
     DFA* dfa1;
     DFA* dfa2;
     EditorDFAWidget* editorDFA1;
     EditorDFAWidget* editorDFA2;
-    VistaUnionDFAWidget* vistaUnion;
+    QComboBox* comboAutomata;
     QLineEdit* entradaCadena;
     QPushButton* botonEvaluar;
-    QLabel* requisitoDFA1;
-    QLabel* requisitoDFA2;
-    QLabel* requisitoUnion;
+    QLabel* etiquetaEstadoDFA;
     QLabel* mensajeEstado;
-    QLabel* resultadoDFA1;
-    QLabel* resultadoDFA2;
-    QLabel* resultadoUnion;
-    QLabel* estadoFinalDFA1Label;
-    QLabel* estadoFinalDFA2Label;
-    QLabel* estadoFinalUnionLabel;
-    QLabel* consistenciaLabel;
-    QPlainTextEdit* trazaDFA1;
-    QPlainTextEdit* trazaDFA2;
-    QPlainTextEdit* trazaUnion;
+    QLabel* resultadoLabel;
+    QLabel* detallesResultadoLabel;
+    QPlainTextEdit* procedimientoFormal;
+    QPlainTextEdit* recorridoSimple;
     bool hayResultados;
-    VisualizadorAutomataWidget* visualizadorUnion;
-    ListaPasosDFAUnion pasosUnionVisual;
+    VisualizadorAutomataWidget* visualizador;
+    ListaPasosDFA pasosDFAVisual;
     int pasoActual;
     QLabel* indicadorPaso;
     QPushButton* botonAnterior;

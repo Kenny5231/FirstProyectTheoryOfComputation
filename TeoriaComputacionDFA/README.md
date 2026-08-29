@@ -250,3 +250,16 @@ Correccion visual de Fase 21:
 - Los simbolos de self-loops se colocan por encima del arco.
 - Cada etiqueta tiene un fondo claro y un orden Z que evita que quede oculta por los estados.
 - Los simbolos resaltados conservan el color verde durante la trazabilidad.
+
+## PRUEBA INDIVIDUAL DE CADENAS (correccion de Fase 20)
+- La prueba de una cadena se realiza SOBRE UN SOLO AUTOMATA seleccionable (DFA 1 o DFA 2).
+- Solamente el DFA seleccionado necesita estar valido para poder evaluar.
+- Ya no se depende de que DFA 2 este valido ni de que el DFA Union este generado.
+- El estado del otro DFA no afecta la disponibilidad de la prueba individual.
+- Se utiliza `SimuladorDFA` (con `simularConTraza`) sobre el DFA seleccionado.
+- Se muestra el desarrollo matematico paso a paso de la funcion de transicion extendida δ̂.
+- Se muestra la pertenencia del estado alcanzado al conjunto de estados finales F.
+- Se concluye formalmente si la cadena w pertenece a L(M) (ACEPTADA) o no (RECHAZADA).
+- Se diferencia la cadena NO PROCESABLE (simbolo fuera del alfabeto) de la cadena RECHAZADA.
+- Se conserva el recorrido textual (RECORRIDO) y la visualizacion grafica paso a paso del DFA seleccionado.
+- La prueba del DFA Union se desarrollara por separado en una correccion posterior.

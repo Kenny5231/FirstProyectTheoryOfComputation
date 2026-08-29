@@ -1,19 +1,17 @@
 #include "gui/VistaPruebaCadenaWidget.h"
 
 #include "automata/DFA.h"
-#include "automata/DFAUnion.h"
 #include "estructuras/CadenaEntrada.h"
 #include "estructuras/ListaPasosDFA.h"
-#include "estructuras/ListaPasosDFAUnion.h"
 #include "estructuras/NodoPasoDFA.h"
-#include "estructuras/NodoPasoDFAUnion.h"
+#include "estructuras/ListaEstados.h"
+#include "estructuras/ListaSimbolos.h"
+#include "estructuras/NodoEstado.h"
+#include "estructuras/NodoSimbolo.h"
+#include "estructuras/NodoSimboloCadena.h"
 #include "gui/EditorDFAWidget.h"
-#include "gui/VistaUnionDFAWidget.h"
 #include "gui/VisualizadorAutomataWidget.h"
-#include "simulacion/EvaluadorTriple.h"
-#include "simulacion/ResultadoTriple.h"
 #include "simulacion/SimuladorDFA.h"
-#include "simulacion/SimuladorDFAUnion.h"
 
 #include <QFrame>
 #include <QGridLayout>
@@ -22,6 +20,7 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QComboBox>
 #include <QStyle>
 #include <QVBoxLayout>
 
@@ -32,60 +31,33 @@ QLabel* etiqueta(const QString& texto, const QString& nombre) {
     resultado->setWordWrap(true);
     return resultado;
 }
-
-QFrame* tarjetaResultado(const QString& titulo, QLabel*& estado, QLabel*& final) {
-    QFrame* tarjeta = new QFrame;
-    tarjeta->setObjectName("testResultCard");
-    QVBoxLayout* layout = new QVBoxLayout(tarjeta);
-    layout->setContentsMargins(16, 14, 16, 14);
-    layout->setSpacing(6);
-    layout->addWidget(etiqueta(titulo, "testCardTitle"));
-    estado = etiqueta("Sin evaluar", "testResultStatus");
-    final = etiqueta("Estado: —", "testResultFinal");
-    layout->addWidget(estado);
-    layout->addWidget(final);
-    return tarjeta;
-}
-
-QString estadoResultado(bool aceptada) {
-    return aceptada ? "ACEPTADA" : "RECHAZADA";
-}
 }
 
 VistaPruebaCadenaWidget::VistaPruebaCadenaWidget(
     DFA& dfa1Referencia, DFA& dfa2Referencia, EditorDFAWidget* editor1,
-    EditorDFAWidget* editor2, VistaUnionDFAWidget* vistaUnionReferencia,
-    QWidget* parent)
+    EditorDFAWidget* editor2, QWidget* parent)
     : QWidget(parent),
       dfa1(&dfa1Referencia),
       dfa2(&dfa2Referencia),
       editorDFA1(editor1),
       editorDFA2(editor2),
-      vistaUnion(vistaUnionReferencia),
+      comboAutomata(nullptr),
       entradaCadena(nullptr),
       botonEvaluar(nullptr),
-      requisitoDFA1(nullptr),
-      requisitoDFA2(nullptr),
-      requisitoUnion(nullptr),
+      etiquetaEstadoDFA(nullptr),
       mensajeEstado(nullptr),
-      resultadoDFA1(nullptr),
-      resultadoDFA2(nullptr),
-      resultadoUnion(nullptr),
-      estadoFinalDFA1Label(nullptr),
-      estadoFinalDFA2Label(nullptr),
-      estadoFinalUnionLabel(nullptr),
-      consistenciaLabel(nullptr),
-      trazaDFA1(nullptr),
-      trazaDFA2(nullptr),
-      trazaUnion(nullptr),
-    hayResultados(false),
-    visualizadorUnion(nullptr),
-    pasosUnionVisual(),
-    pasoActual(0),
-    indicadorPaso(nullptr),
-    botonAnterior(nullptr),
-    botonSiguiente(nullptr),
-    botonReiniciar(nullptr) {
+      resultadoLabel(nullptr),
+      detallesResultadoLabel(nullptr),
+      procedimientoFormal(nullptr),
+      recorridoSimple(nullptr),
+      hayResultados(false),
+      visualizador(nullptr),
+      pasosDFAVisual(),
+      pasoActual(0),
+      indicadorPaso(nullptr),
+      botonAnterior(nullptr),
+      botonSiguiente(nullptr),
+      botonReiniciar(nullptr) {
     crearInterfaz();
     conectarEventos();
     actualizarDisponibilidad();
@@ -96,71 +68,77 @@ void VistaPruebaCadenaWidget::crearInterfaz() {
     principal->setContentsMargins(32, 28, 32, 30);
     principal->setSpacing(12);
     principal->addWidget(etiqueta("SIMULACIÓN", "eyebrow"));
-    principal->addWidget(etiqueta("Prueba de cadenas", "pageTitle"));
-    principal->addWidget(etiqueta("Evalúa una secuencia sobre DFA 1, DFA 2 y el DFA Unión.", "pageSub"));
+    principal->addWidget(etiqueta("Prueba de cadena", "pageTitle"));
+    principal->addWidget(etiqueta("Evalúa una cadena sobre un autómata determinista.", "pageSub"));
 
-    QFrame* requisitos = new QFrame;
-    requisitos->setObjectName("testRequirements");
-    QGridLayout* requisitosLayout = new QGridLayout(requisitos);
-    requisitosLayout->setContentsMargins(18, 14, 18, 14);
-    requisitosLayout->setHorizontalSpacing(20);
-    requisitosLayout->setVerticalSpacing(6);
-    requisitosLayout->addWidget(etiqueta("REQUISITOS", "testSectionTitle"), 0, 0, 1, 2);
-    requisitosLayout->addWidget(etiqueta("DFA 1", "testRequirementName"), 1, 0);
-    requisitosLayout->addWidget(requisitoDFA1 = etiqueta("Pendiente", "testRequirementStatus"), 1, 1);
-    requisitosLayout->addWidget(etiqueta("DFA 2", "testRequirementName"), 2, 0);
-    requisitosLayout->addWidget(requisitoDFA2 = etiqueta("Pendiente", "testRequirementStatus"), 2, 1);
-    requisitosLayout->addWidget(etiqueta("DFA Unión", "testRequirementName"), 3, 0);
-    requisitosLayout->addWidget(requisitoUnion = etiqueta("No generado", "testRequirementStatus"), 3, 1);
-    principal->addWidget(requisitos);
+    // Selector de autómata
+    QFrame* selectorFrame = new QFrame;
+    selectorFrame->setObjectName("testRequirements");
+    QGridLayout* selectorLayout = new QGridLayout(selectorFrame);
+    selectorLayout->setContentsMargins(18, 14, 18, 14);
+    selectorLayout->setHorizontalSpacing(20);
+    selectorLayout->setVerticalSpacing(6);
+    selectorLayout->addWidget(etiqueta("AUTÓMATA A PROBAR", "testSectionTitle"), 0, 0);
+    comboAutomata = new QComboBox;
+    comboAutomata->addItem("DFA 1");
+    comboAutomata->addItem("DFA 2");
+    selectorLayout->addWidget(comboAutomata, 0, 1, Qt::AlignLeft);
+    selectorLayout->addWidget(etiqueta("Estado:", "testRequirementName"), 1, 0);
+    etiquetaEstadoDFA = etiqueta("Pendiente", "testRequirementStatus");
+    selectorLayout->addWidget(etiquetaEstadoDFA, 1, 1);
+    selectorLayout->setColumnStretch(2, 1);
+    selectorLayout->setRowStretch(2, 1);
+    principal->addWidget(selectorFrame);
 
-    principal->addWidget(etiqueta("CADENA DE ENTRADA", "testSectionTitle"));
+    // Entrada de cadena
+    principal->addWidget(etiqueta("CADENA", "testSectionTitle"));
     entradaCadena = new QLineEdit;
-    entradaCadena->setPlaceholderText("Ejemplo: a b a b");
+    entradaCadena->setPlaceholderText("Ejemplo: 1101");
     entradaCadena->setMinimumHeight(40);
     principal->addWidget(entradaCadena);
-    principal->addWidget(etiqueta("Separa cada símbolo con espacios. Deja vacío para ε.", "testHint"));
+    principal->addWidget(etiqueta("Si el alfabeto usa símbolos individuales, puedes escribirlos juntos. "
+                                   "También puedes separar símbolos mediante espacios.", "testHint"));
+    
     botonEvaluar = new QPushButton("Evaluar cadena");
     botonEvaluar->setObjectName("validationButton");
     botonEvaluar->setCursor(Qt::PointingHandCursor);
     principal->addWidget(botonEvaluar, 0, Qt::AlignRight);
-    mensajeEstado = etiqueta("Valida ambos DFA y genera la unión para habilitar la evaluación.", "testMessage");
+    
+    mensajeEstado = etiqueta("Selecciona un autómata y valídalo para habilitar la evaluación.", "testMessage");
     principal->addWidget(mensajeEstado);
 
-    QGridLayout* resultados = new QGridLayout;
-    resultados->setHorizontalSpacing(12);
-    resultados->addWidget(tarjetaResultado("DFA 1", resultadoDFA1, estadoFinalDFA1Label), 0, 0);
-    resultados->addWidget(tarjetaResultado("DFA 2", resultadoDFA2, estadoFinalDFA2Label), 0, 1);
-    resultados->addWidget(tarjetaResultado("DFA Unión", resultadoUnion, estadoFinalUnionLabel), 0, 2);
-    principal->addLayout(resultados);
-    consistenciaLabel = etiqueta("DFA Unión = DFA1 OR DFA2\nPendiente de evaluación", "testConsistency");
-    principal->addWidget(consistenciaLabel);
+    // Resultado
+    principal->addWidget(etiqueta("RESULTADO", "testSectionTitle"));
+    resultadoLabel = etiqueta("Sin evaluar", "testResultStatus");
+    resultadoLabel->setStyleSheet("font-size: 16px; font-weight: bold;");
+    principal->addWidget(resultadoLabel);
+    
+    detallesResultadoLabel = etiqueta("", "testResultDetails");
+    principal->addWidget(detallesResultadoLabel);
 
-    principal->addWidget(etiqueta("TRAZABILIDAD", "testSectionTitle"));
-    QGridLayout* trazas = new QGridLayout;
-    trazas->setHorizontalSpacing(12);
-    trazaDFA1 = new QPlainTextEdit;
-    trazaDFA2 = new QPlainTextEdit;
-    trazaUnion = new QPlainTextEdit;
-    trazaDFA1->setReadOnly(true);
-    trazaDFA2->setReadOnly(true);
-    trazaUnion->setReadOnly(true);
-    trazaDFA1->setObjectName("testTrace");
-    trazaDFA2->setObjectName("testTrace");
-    trazaUnion->setObjectName("testTrace");
-    trazaDFA1->setPlaceholderText("La traza de DFA 1 aparecerá aquí.");
-    trazaDFA2->setPlaceholderText("La traza de DFA 2 aparecerá aquí.");
-    trazaUnion->setPlaceholderText("La traza del DFA Unión aparecerá aquí.");
-    trazas->addWidget(etiqueta("Traza DFA 1", "testTraceTitle"), 0, 0);
-    trazas->addWidget(etiqueta("Traza DFA 2", "testTraceTitle"), 0, 1);
-    trazas->addWidget(trazaDFA1, 1, 0);
-    trazas->addWidget(trazaDFA2, 1, 1);
-    trazas->addWidget(etiqueta("Traza DFA Unión", "testTraceTitle"), 2, 0, 1, 2);
-    trazas->addWidget(trazaUnion, 3, 0, 1, 2);
-    principal->addLayout(trazas);
+    // Procedimiento formal
+    principal->addWidget(etiqueta("PROCEDIMIENTO FORMAL — δ̂", "testSectionTitle"));
+    procedimientoFormal = new QPlainTextEdit;
+    procedimientoFormal->setReadOnly(true);
+    procedimientoFormal->setObjectName("testTrace");
+    procedimientoFormal->setPlaceholderText("El procedimiento formal aparecerá aquí.");
+    procedimientoFormal->setMinimumHeight(200);
+    principal->addWidget(procedimientoFormal);
+
+    // Recorrido simple
+    principal->addWidget(etiqueta("RECORRIDO", "testSectionTitle"));
+    recorridoSimple = new QPlainTextEdit;
+    recorridoSimple->setReadOnly(true);
+    recorridoSimple->setObjectName("testTrace");
+    recorridoSimple->setPlaceholderText("El recorrido de estados aparecerá aquí.");
+    recorridoSimple->setMinimumHeight(100);
+    principal->addWidget(recorridoSimple);
+
+    // Visualización gráfica
     principal->addWidget(etiqueta("VISUALIZACIÓN DEL RECORRIDO", "testSectionTitle"));
-    visualizadorUnion = new VisualizadorAutomataWidget;
-    principal->addWidget(visualizadorUnion);
+    visualizador = new VisualizadorAutomataWidget;
+    principal->addWidget(visualizador);
+    
     QHBoxLayout* controlesRecorrido = new QHBoxLayout;
     botonAnterior = new QPushButton("Anterior");
     indicadorPaso = etiqueta("Paso 0 / 0", "testStepIndicator");
@@ -173,27 +151,49 @@ void VistaPruebaCadenaWidget::crearInterfaz() {
     controlesRecorrido->addWidget(botonSiguiente);
     controlesRecorrido->addWidget(botonReiniciar);
     principal->addLayout(controlesRecorrido);
+    
     principal->addStretch(1);
 }
 
 void VistaPruebaCadenaWidget::conectarEventos() {
     connect(botonEvaluar, &QPushButton::clicked, this, [this]() { evaluarCadena(); });
-    connect(editorDFA1, &EditorDFAWidget::dfaModificado, this, [this]() { invalidarResultados(); });
-    connect(editorDFA2, &EditorDFAWidget::dfaModificado, this, [this]() { invalidarResultados(); });
+    connect(comboAutomata, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [this]() { cambiarDFASeleccionado(); });
+    
+    connect(editorDFA1, &EditorDFAWidget::dfaModificado, this, [this]() {
+        if (comboAutomata->currentIndex() == 0) {
+            invalidarResultados();
+        }
+    });
+    connect(editorDFA2, &EditorDFAWidget::dfaModificado, this, [this]() {
+        if (comboAutomata->currentIndex() == 1) {
+            invalidarResultados();
+        }
+    });
     connect(editorDFA1, &EditorDFAWidget::estadoValidacionCambiado,
-            this, [this](bool) { actualizarDisponibilidad(); });
-    connect(editorDFA2, &EditorDFAWidget::estadoValidacionCambiado,
-            this, [this](bool) { actualizarDisponibilidad(); });
-    connect(vistaUnion, &VistaUnionDFAWidget::estadoUnionCambiado,
-            this, [this](bool generada) {
-                if (!generada) invalidarResultados();
-                else actualizarDisponibilidad();
+            this, [this](bool) {
+                if (comboAutomata->currentIndex() == 0) {
+                    actualizarDisponibilidad();
+                }
             });
+    connect(editorDFA2, &EditorDFAWidget::estadoValidacionCambiado,
+            this, [this](bool) {
+                if (comboAutomata->currentIndex() == 1) {
+                    actualizarDisponibilidad();
+                }
+            });
+    
     connect(botonAnterior, &QPushButton::clicked, this, [this]() {
-        if (pasoActual > 0) { --pasoActual; actualizarRecorrido(); }
+        if (pasoActual > 0) { 
+            --pasoActual; 
+            actualizarRecorrido(); 
+        }
     });
     connect(botonSiguiente, &QPushButton::clicked, this, [this]() {
-        if (pasoActual < pasosUnionVisual.cantidad()) { ++pasoActual; actualizarRecorrido(); }
+        if (pasoActual < pasosDFAVisual.cantidad()) { 
+            ++pasoActual; 
+            actualizarRecorrido(); 
+        }
     });
     connect(botonReiniciar, &QPushButton::clicked, this, [this]() {
         pasoActual = 0;
@@ -201,224 +201,16 @@ void VistaPruebaCadenaWidget::conectarEventos() {
     });
 }
 
-void VistaPruebaCadenaWidget::actualizarDisponibilidad() {
-    const bool valido1 = editorDFA1->esDFAValido();
-    const bool valido2 = editorDFA2->esDFAValido();
-    const bool unionGenerada = vistaUnion->hayUnionGenerada();
-    requisitoDFA1->setText(valido1 ? "Válido" : (editorDFA1->estaValidado() ? "Inválido" : "Pendiente"));
-    requisitoDFA2->setText(valido2 ? "Válido" : (editorDFA2->estaValidado() ? "Inválido" : "Pendiente"));
-    requisitoUnion->setText(unionGenerada ? "Generado" : "No generado");
-    requisitoDFA1->setProperty("valid", valido1);
-    requisitoDFA2->setProperty("valid", valido2);
-    requisitoUnion->setProperty("valid", unionGenerada);
-    const bool disponible = valido1 && valido2 && unionGenerada;
-    botonEvaluar->setEnabled(disponible);
-    botonEvaluar->setToolTip(disponible ? "Evalúa la cadena." : "Valida ambos DFA y genera la unión antes de evaluar.");
-    if (disponible) {
-        mensajeEstado->setText("Todo listo. Ingresa una cadena para evaluarla.");
-    } else if (!valido1 && !valido2) {
-        mensajeEstado->setText("Valida DFA 1 y DFA 2 antes de continuar.");
-    } else if (!valido1) {
-        mensajeEstado->setText("Valida DFA 1 antes de evaluar cadenas.");
-    } else if (!valido2) {
-        mensajeEstado->setText("Valida DFA 2 antes de evaluar cadenas.");
-    } else {
-        mensajeEstado->setText("Genera el DFA Unión antes de evaluar cadenas.");
-    }
-    requisitoDFA1->style()->unpolish(requisitoDFA1);
-    requisitoDFA1->style()->polish(requisitoDFA1);
-    requisitoDFA2->style()->unpolish(requisitoDFA2);
-    requisitoDFA2->style()->polish(requisitoDFA2);
-    requisitoUnion->style()->unpolish(requisitoUnion);
-    requisitoUnion->style()->polish(requisitoUnion);
-    botonAnterior->setEnabled(hayResultados && pasoActual > 0);
-    botonSiguiente->setEnabled(hayResultados && pasoActual < pasosUnionVisual.cantidad());
-    botonReiniciar->setEnabled(hayResultados);
+DFA* VistaPruebaCadenaWidget::obtenerDFASeleccionado() const {
+    return comboAutomata->currentIndex() == 0 ? dfa1 : dfa2;
 }
 
-void VistaPruebaCadenaWidget::construirCadenaEntrada(const QString& texto, CadenaEntrada& cadena) const {
-    cadena.limpiar();
-    QString tokenActual;
-    for (int indice = 0; indice < texto.size(); ++indice) {
-        const QChar caracter = texto.at(indice);
-        if (caracter.isSpace()) {
-            if (!tokenActual.isEmpty()) {
-                cadena.agregarSimbolo(tokenActual.toStdString());
-                tokenActual.clear();
-            }
-        } else {
-            tokenActual += caracter;
-        }
-    }
-    if (!tokenActual.isEmpty()) {
-        cadena.agregarSimbolo(tokenActual.toStdString());
-    }
+EditorDFAWidget* VistaPruebaCadenaWidget::obtenerEditorSeleccionado() const {
+    return comboAutomata->currentIndex() == 0 ? editorDFA1 : editorDFA2;
 }
 
-QString VistaPruebaCadenaWidget::construirTextoTrazaDFA(
-    const DFA& dfa, const ListaPasosDFA& pasos, bool procesable, bool aceptada,
-    const std::string& estadoFinal) const {
-    QString texto = "Estado inicial: " + QString::fromStdString(dfa.obtenerEstadoInicial());
-    texto += "\n\n";
-    const NodoPasoDFA* actual = pasos.obtenerPrimero();
-    int numero = 1;
-    while (actual != nullptr) {
-        texto += QString("Paso %1\n").arg(numero);
-        texto += QString::fromStdString(actual->origen) + " --" +
-                 QString::fromStdString(actual->simbolo) + "--> " +
-                 QString::fromStdString(actual->destino) + "\n\n";
-        actual = actual->siguiente;
-        ++numero;
-    }
-    if (!procesable) texto += "SIMULACIÓN DETENIDA\n\n";
-    if (pasos.estaVacia()) texto += "No se procesaron símbolos (ε).\n\n";
-    texto += "Estado alcanzado: " + QString::fromStdString(estadoFinal) + "\n";
-    texto += "Resultado: " + (procesable ? estadoResultado(aceptada) : "CADENA NO PROCESABLE");
-    return texto;
-}
-
-QString VistaPruebaCadenaWidget::construirTextoTrazaUnion(
-    const DFAUnion& dfaUnion, const ListaPasosDFAUnion& pasos,
-    bool procesable, bool aceptada,
-    const std::string& estadoFinalDFA1, const std::string& estadoFinalDFA2) const {
-    const QString estadoInicial = "(" + QString::fromStdString(dfaUnion.obtenerEstadoInicialDFA1()) + "," +
-                                QString::fromStdString(dfaUnion.obtenerEstadoInicialDFA2()) + ")";
-    const QString estadoFinal = "(" + QString::fromStdString(estadoFinalDFA1) + "," +
-                                QString::fromStdString(estadoFinalDFA2) + ")";
-    QString texto = "Estado inicial: " + estadoInicial + "\n\n";
-    const NodoPasoDFAUnion* actual = pasos.obtenerPrimero();
-    int numero = 1;
-    while (actual != nullptr) {
-        texto += QString("Paso %1\n(").arg(numero) +
-                 QString::fromStdString(actual->origenDFA1) + "," +
-                 QString::fromStdString(actual->origenDFA2) + ") --" +
-                 QString::fromStdString(actual->simbolo) + "--> (" +
-                 QString::fromStdString(actual->destinoDFA1) + "," +
-                 QString::fromStdString(actual->destinoDFA2) + ")\n\n";
-        actual = actual->siguiente;
-        ++numero;
-    }
-    if (!procesable) texto += "SIMULACIÓN DETENIDA\n\n";
-    if (pasos.estaVacia()) texto += "No se procesaron símbolos (ε).\n\n";
-    texto += "Estado alcanzado: " + estadoFinal + "\n";
-    texto += "Resultado: " + (procesable ? estadoResultado(aceptada) : "CADENA NO PROCESABLE");
-    return texto;
-}
-
-void VistaPruebaCadenaWidget::evaluarCadena() {
-    if (!editorDFA1->esDFAValido() || !editorDFA2->esDFAValido() || !vistaUnion->hayUnionGenerada()) {
-        mensajeEstado->setText("Valida ambos DFA y genera la unión antes de evaluar.");
-        return;
-    }
-    const DFAUnion* unionActual = vistaUnion->obtenerDFAUnion();
-    if (unionActual == nullptr) {
-        mensajeEstado->setText("No existe una unión válida para evaluar.");
-        return;
-    }
-    CadenaEntrada cadena;
-    construirCadenaEntrada(entradaCadena->text(), cadena);
-    ResultadoTriple resultado;
-    EvaluadorTriple evaluador;
-    evaluador.evaluar(*dfa1, *dfa2, *unionActual, cadena, resultado);
-    ListaPasosDFA pasosDFA1;
-    ListaPasosDFA pasosDFA2;
-    ListaPasosDFAUnion pasosUnion;
-    bool aceptadaDFA1 = false;
-    bool aceptadaDFA2 = false;
-    bool aceptadaUnion = false;
-    std::string estadoDFA1;
-    std::string estadoDFA2;
-    std::string estadoUnionDFA1;
-    std::string estadoUnionDFA2;
-    SimuladorDFA simuladorDFA;
-    SimuladorDFAUnion simuladorUnion;
-    const bool procesableDFA1 = simuladorDFA.simularConTraza(*dfa1, cadena, pasosDFA1, aceptadaDFA1, estadoDFA1);
-    const bool procesableDFA2 = simuladorDFA.simularConTraza(*dfa2, cadena, pasosDFA2, aceptadaDFA2, estadoDFA2);
-    const bool procesableUnion = simuladorUnion.simularConTraza(*unionActual, cadena, pasosUnion, aceptadaUnion, estadoUnionDFA1, estadoUnionDFA2);
-    pasosUnionVisual.limpiar();
-    const NodoPasoDFAUnion* pasoFuente = pasosUnion.obtenerPrimero();
-    while (pasoFuente != nullptr) {
-        pasosUnionVisual.agregarPaso(pasoFuente->origenDFA1, pasoFuente->origenDFA2,
-                                     pasoFuente->simbolo, pasoFuente->destinoDFA1,
-                                     pasoFuente->destinoDFA2);
-        pasoFuente = pasoFuente->siguiente;
-    }
-    pasoActual = 0;
-    hayResultados = true;
-    if (!resultado.procesable) {
-        const QString invalido = QString::fromStdString(resultado.simboloInvalido);
-        mensajeEstado->setText("CADENA NO PROCESABLE\nSímbolo inválido: " + invalido);
-        actualizarEstiloResultado(resultadoDFA1, "CADENA NO PROCESABLE", true);
-        actualizarEstiloResultado(resultadoDFA2, "CADENA NO PROCESABLE", true);
-        actualizarEstiloResultado(resultadoUnion, "CADENA NO PROCESABLE", true);
-    } else {
-        mensajeEstado->setText("Evaluación completada.");
-        actualizarEstiloResultado(resultadoDFA1, estadoResultado(resultado.aceptadaDFA1), !resultado.aceptadaDFA1);
-        actualizarEstiloResultado(resultadoDFA2, estadoResultado(resultado.aceptadaDFA2), !resultado.aceptadaDFA2);
-        actualizarEstiloResultado(resultadoUnion, estadoResultado(resultado.aceptadaUnion), !resultado.aceptadaUnion);
-    }
-    if (resultado.procesable) {
-        estadoFinalDFA1Label->setText("Estado: " + QString::fromStdString(resultado.estadoFinalDFA1));
-        estadoFinalDFA2Label->setText("Estado: " + QString::fromStdString(resultado.estadoFinalDFA2));
-        estadoFinalUnionLabel->setText("Estado: (" + QString::fromStdString(resultado.estadoFinalUnionDFA1) + "," + QString::fromStdString(resultado.estadoFinalUnionDFA2) + ")");
-    } else {
-        estadoFinalDFA1Label->setText("Estado: —");
-        estadoFinalDFA2Label->setText("Estado: —");
-        estadoFinalUnionLabel->setText("Estado: —");
-    }
-    consistenciaLabel->setText(resultado.procesable
-        ? (resultado.unionConsistente ? "DFA Unión = DFA1 OR DFA2\nCORRECTA" : "DFA Unión = DFA1 OR DFA2\nINCONSISTENCIA DETECTADA")
-        : "DFA Unión = DFA1 OR DFA2\nNo comprobable: cadena no procesable");
-    consistenciaLabel->setProperty("error", resultado.procesable && !resultado.unionConsistente);
-    consistenciaLabel->style()->unpolish(consistenciaLabel);
-    consistenciaLabel->style()->polish(consistenciaLabel);
-    trazaDFA1->setPlainText(construirTextoTrazaDFA(*dfa1, pasosDFA1, procesableDFA1, aceptadaDFA1, estadoDFA1));
-    trazaDFA2->setPlainText(construirTextoTrazaDFA(*dfa2, pasosDFA2, procesableDFA2, aceptadaDFA2, estadoDFA2));
-    trazaUnion->setPlainText(construirTextoTrazaUnion(*unionActual, pasosUnion, procesableUnion, aceptadaUnion, estadoUnionDFA1, estadoUnionDFA2));
-    actualizarRecorrido();
-}
-
-void VistaPruebaCadenaWidget::actualizarEstiloResultado(QLabel* etiquetaResultado,
-                                                        const QString& estado,
-                                                        bool error) {
-    etiquetaResultado->setText(estado);
-    etiquetaResultado->setProperty("error", error);
-    etiquetaResultado->style()->unpolish(etiquetaResultado);
-    etiquetaResultado->style()->polish(etiquetaResultado);
-}
-
-void VistaPruebaCadenaWidget::limpiarResultados() {
-    hayResultados = false;
-    resultadoDFA1->setText("Sin evaluar");
-    resultadoDFA2->setText("Sin evaluar");
-    resultadoUnion->setText("Sin evaluar");
-    resultadoDFA1->setProperty("error", false);
-    resultadoDFA2->setProperty("error", false);
-    resultadoUnion->setProperty("error", false);
-    estadoFinalDFA1Label->setText("Estado: —");
-    estadoFinalDFA2Label->setText("Estado: —");
-    estadoFinalUnionLabel->setText("Estado: —");
-    consistenciaLabel->setText("DFA Unión = DFA1 OR DFA2\nPendiente de evaluación");
-    consistenciaLabel->setProperty("error", false);
-    trazaDFA1->clear();
-    trazaDFA2->clear();
-    trazaUnion->clear();
-    resultadoDFA1->style()->unpolish(resultadoDFA1);
-    resultadoDFA1->style()->polish(resultadoDFA1);
-    resultadoDFA1->update();
-    resultadoDFA2->style()->unpolish(resultadoDFA2);
-    resultadoDFA2->style()->polish(resultadoDFA2);
-    resultadoDFA2->update();
-    resultadoUnion->style()->unpolish(resultadoUnion);
-    resultadoUnion->style()->polish(resultadoUnion);
-    resultadoUnion->update();
-    consistenciaLabel->style()->unpolish(consistenciaLabel);
-    consistenciaLabel->style()->polish(consistenciaLabel);
-    consistenciaLabel->update();
-}
-
-const NodoPasoDFAUnion* VistaPruebaCadenaWidget::obtenerPasoUnion(int indice) const {
-    const NodoPasoDFAUnion* actual = pasosUnionVisual.obtenerPrimero();
+const NodoPasoDFA* VistaPruebaCadenaWidget::obtenerPasoDFA(int indice) const {
+    const NodoPasoDFA* actual = pasosDFAVisual.obtenerPrimero();
     int contador = 1;
     while (actual != nullptr) {
         if (contador == indice) return actual;
@@ -428,31 +220,356 @@ const NodoPasoDFAUnion* VistaPruebaCadenaWidget::obtenerPasoUnion(int indice) co
     return nullptr;
 }
 
+bool VistaPruebaCadenaWidget::todosSimbolosSonDeUnCaracter(const DFA& dfa) const {
+    const ListaSimbolos& alfabeto = dfa.obtenerAlfabeto();
+    const NodoSimbolo* actual = alfabeto.obtenerPrimero();
+    while (actual != nullptr) {
+        if (actual->simbolo.length() != 1) {
+            return false;
+        }
+        actual = actual->siguiente;
+    }
+    return true;
+}
+
+void VistaPruebaCadenaWidget::construirCadenaEntrada(const QString& texto, const DFA& dfa, 
+                                                      CadenaEntrada& cadena) const {
+    cadena.limpiar();
+    
+    if (texto.isEmpty()) {
+        // Cadena vacía
+        return;
+    }
+    
+    bool todosUnCaracter = todosSimbolosSonDeUnCaracter(dfa);
+    
+    if (todosUnCaracter) {
+        // Verificar si hay espacios
+        bool tieneEspacios = false;
+        for (int i = 0; i < texto.size(); ++i) {
+            if (texto.at(i).isSpace()) {
+                tieneEspacios = true;
+                break;
+            }
+        }
+        
+        if (tieneEspacios) {
+            // Procesar como símbolos separados por espacio
+            QString tokenActual;
+            for (int i = 0; i < texto.size(); ++i) {
+                const QChar caracter = texto.at(i);
+                if (caracter.isSpace()) {
+                    if (!tokenActual.isEmpty()) {
+                        cadena.agregarSimbolo(tokenActual.toStdString());
+                        tokenActual.clear();
+                    }
+                } else {
+                    tokenActual += caracter;
+                }
+            }
+            if (!tokenActual.isEmpty()) {
+                cadena.agregarSimbolo(tokenActual.toStdString());
+            }
+        } else {
+            // Procesar carácter por carácter
+            for (int i = 0; i < texto.size(); ++i) {
+                cadena.agregarSimbolo(std::string(1, texto.at(i).toLatin1()));
+            }
+        }
+    } else {
+        // Símbolos multicarácter: requerir espacios
+        QString tokenActual;
+        for (int i = 0; i < texto.size(); ++i) {
+            const QChar caracter = texto.at(i);
+            if (caracter.isSpace()) {
+                if (!tokenActual.isEmpty()) {
+                    cadena.agregarSimbolo(tokenActual.toStdString());
+                    tokenActual.clear();
+                }
+            } else {
+                tokenActual += caracter;
+            }
+        }
+        if (!tokenActual.isEmpty()) {
+            cadena.agregarSimbolo(tokenActual.toStdString());
+        }
+    }
+}
+
+QString VistaPruebaCadenaWidget::construirProcedimientoFormal(
+    const DFA& dfa, const CadenaEntrada& cadena, const ListaPasosDFA& pasos,
+    bool procesable, bool aceptada, const std::string& estadoFinal) const {
+    
+    const std::string estadoInicial = dfa.obtenerEstadoInicial();
+    QString resultado;
+    
+    // Primer paso: δ̂(q_inicial, ε) = q_inicial
+    resultado += "δ̂(" + QString::fromStdString(estadoInicial) + ", ε) = " +
+                 QString::fromStdString(estadoInicial) + "\n\n";
+    
+    if (pasos.estaVacia()) {
+        // Solo cadena vacía
+        // Determinar si es aceptada
+        const ListaEstados& estadosFinales = dfa.obtenerEstadosFinales();
+        const NodoEstado* nodo = estadosFinales.obtenerPrimero();
+        bool esEstadoFinal = false;
+        while (nodo != nullptr) {
+            if (nodo->nombre == estadoInicial) {
+                esEstadoFinal = true;
+                break;
+            }
+            nodo = nodo->siguiente;
+        }
+        
+        if (esEstadoFinal) {
+            resultado += QString::fromStdString(estadoInicial) + " ∈ F\n\n";
+            resultado += "∴ M reconoce ε\n";
+            resultado += "∴ ε ∈ L(M)\n";
+        } else {
+            resultado += QString::fromStdString(estadoInicial) + " ∉ F\n\n";
+            resultado += "∴ M no reconoce ε\n";
+            resultado += "∴ ε ∉ L(M)\n";
+        }
+        return resultado;
+    }
+    
+    // Procesar paso a paso
+    QString prefijoAnterior;
+    QString prefijoActual;
+    
+    const NodoPasoDFA* paso = pasos.obtenerPrimero();
+    
+    while (paso != nullptr) {
+        prefijoAnterior = prefijoActual;
+        prefijoActual += QString::fromStdString(paso->simbolo);
+        
+        const QString prefijoAnteriorMostrar =
+            prefijoAnterior.isEmpty() ? QString::fromUtf8("ε") : prefijoAnterior;
+        
+        resultado += "δ̂(" + QString::fromStdString(estadoInicial) + ", " + prefijoActual + ")\n";
+        resultado += "= δ(δ̂(" + QString::fromStdString(estadoInicial) + ", " +
+                     prefijoAnteriorMostrar;
+        resultado += "), " + QString::fromStdString(paso->simbolo) + ")\n";
+        resultado += "= δ(" + QString::fromStdString(paso->origen) + ", " +
+                     QString::fromStdString(paso->simbolo) + ")\n";
+        resultado += "= " + QString::fromStdString(paso->destino) + "\n\n";
+        
+        paso = paso->siguiente;
+    }
+    
+    // Conclusión
+    resultado += "δ̂(" + QString::fromStdString(estadoInicial) + ", " + prefijoActual + ") = " +
+                 QString::fromStdString(estadoFinal) + "\n\n";
+    
+    // Determinar si es estado final
+    const ListaEstados& estadosFinales = dfa.obtenerEstadosFinales();
+    const NodoEstado* nodo = estadosFinales.obtenerPrimero();
+    bool esEstadoFinal = false;
+    while (nodo != nullptr) {
+        if (nodo->nombre == estadoFinal) {
+            esEstadoFinal = true;
+            break;
+        }
+        nodo = nodo->siguiente;
+    }
+    
+    // Mostrar conjunto F
+    resultado += "F = {";
+    nodo = estadosFinales.obtenerPrimero();
+    bool primero = true;
+    while (nodo != nullptr) {
+        if (!primero) resultado += ", ";
+        resultado += QString::fromStdString(nodo->nombre);
+        primero = false;
+        nodo = nodo->siguiente;
+    }
+    resultado += "}\n\n";
+    
+    if (procesable) {
+        if (esEstadoFinal) {
+            resultado += QString::fromStdString(estadoFinal) + " ∈ F\n\n";
+            resultado += "∴ M reconoce " + prefijoActual + "\n";
+            resultado += "∴ " + prefijoActual + " ∈ L(M)\n";
+        } else {
+            resultado += QString::fromStdString(estadoFinal) + " ∉ F\n\n";
+            resultado += "∴ M no reconoce " + prefijoActual + "\n";
+            resultado += "∴ " + prefijoActual + " ∉ L(M)\n";
+        }
+    } else {
+        std::string simboloInvalido;
+        const NodoSimboloCadena* nodoCadena = cadena.obtenerPrimero();
+        while (nodoCadena != nullptr) {
+            if (!dfa.obtenerAlfabeto().existe(nodoCadena->simbolo)) {
+                simboloInvalido = nodoCadena->simbolo;
+                break;
+            }
+            nodoCadena = nodoCadena->siguiente;
+        }
+        resultado += "PROCESAMIENTO DETENIDO\n\n";
+        if (!simboloInvalido.empty()) {
+            resultado += QString::fromStdString(simboloInvalido) + " ∉ Σ\n\n";
+        }
+        resultado += "La cadena no puede ser procesada por M.\n";
+        resultado += "RESULTADO: NO PROCESABLE\n";
+    }
+    
+    return resultado;
+}
+
+QString VistaPruebaCadenaWidget::construirRecorridoSimple(const ListaPasosDFA& pasos) const {
+    if (pasos.estaVacia()) {
+        return "No se procesaron símbolos (ε).";
+    }
+    
+    QString resultado;
+    const NodoPasoDFA* paso = pasos.obtenerPrimero();
+    
+    while (paso != nullptr) {
+        resultado += QString::fromStdString(paso->origen) + " --" +
+                     QString::fromStdString(paso->simbolo) + "--> " +
+                     QString::fromStdString(paso->destino) + "\n";
+        paso = paso->siguiente;
+    }
+    
+    return resultado;
+}
+
+void VistaPruebaCadenaWidget::evaluarCadena() {
+    DFA* dfaSeleccionado = obtenerDFASeleccionado();
+    EditorDFAWidget* editorSeleccionado = obtenerEditorSeleccionado();
+    
+    if (!editorSeleccionado->esDFAValido()) {
+        const QString nombreDFA = comboAutomata->currentIndex() == 0 ? "DFA 1" : "DFA 2";
+        mensajeEstado->setText("Valida " + nombreDFA + " antes de evaluar cadenas.");
+        return;
+    }
+    
+    CadenaEntrada cadena;
+    construirCadenaEntrada(entradaCadena->text(), *dfaSeleccionado, cadena);
+    
+    ListaPasosDFA pasos;
+    bool aceptada = false;
+    std::string estadoFinal;
+    
+    SimuladorDFA simulador;
+    const bool procesable = simulador.simularConTraza(*dfaSeleccionado, cadena, pasos, 
+                                                       aceptada, estadoFinal);
+    
+    pasosDFAVisual.limpiar();
+    const NodoPasoDFA* pasoFuente = pasos.obtenerPrimero();
+    while (pasoFuente != nullptr) {
+        pasosDFAVisual.agregarPaso(pasoFuente->origen, pasoFuente->simbolo, pasoFuente->destino);
+        pasoFuente = pasoFuente->siguiente;
+    }
+    
+    pasoActual = 0;
+    hayResultados = true;
+    
+    if (!procesable) {
+        resultadoLabel->setText("NO PROCESABLE");
+        resultadoLabel->setProperty("error", true);
+        detallesResultadoLabel->setText("La cadena contiene un símbolo que no pertenece al alfabeto.");
+        mensajeEstado->setText("CADENA NO PROCESABLE");
+    } else {
+        const QString veredicto = aceptada ? "ACEPTADA" : "RECHAZADA";
+        resultadoLabel->setText(veredicto);
+        resultadoLabel->setProperty("error", !aceptada);
+        
+        const QString nombreDFA = comboAutomata->currentIndex() == 0 ? "DFA 1" : "DFA 2";
+        QString detalles = "Autómata: " + nombreDFA + "\n";
+        detalles += "Cadena: " + entradaCadena->text() + "\n";
+        detalles += "Estado inicial: " + QString::fromStdString(dfaSeleccionado->obtenerEstadoInicial()) + "\n";
+        detalles += "Estado alcanzado: " + QString::fromStdString(estadoFinal) + "\n";
+        detallesResultadoLabel->setText(detalles);
+        
+        mensajeEstado->setText("Evaluación completada.");
+    }
+    
+    resultadoLabel->style()->unpolish(resultadoLabel);
+    resultadoLabel->style()->polish(resultadoLabel);
+    
+    procedimientoFormal->setPlainText(construirProcedimientoFormal(*dfaSeleccionado, cadena, 
+                                                                   pasos, procesable, 
+                                                                   aceptada, estadoFinal));
+    recorridoSimple->setPlainText(construirRecorridoSimple(pasos));
+    
+    actualizarRecorrido();
+}
+
+void VistaPruebaCadenaWidget::actualizarEstiloResultado(QLabel* etiqueta, const QString& estado, bool error) {
+    etiqueta->setText(estado);
+    etiqueta->setProperty("error", error);
+    etiqueta->style()->unpolish(etiqueta);
+    etiqueta->style()->polish(etiqueta);
+}
+
+void VistaPruebaCadenaWidget::limpiarResultados() {
+    hayResultados = false;
+    resultadoLabel->setText("Sin evaluar");
+    resultadoLabel->setProperty("error", false);
+    detallesResultadoLabel->setText("");
+    procedimientoFormal->clear();
+    recorridoSimple->clear();
+    pasosDFAVisual.limpiar();
+    pasoActual = 0;
+    resultadoLabel->style()->unpolish(resultadoLabel);
+    resultadoLabel->style()->polish(resultadoLabel);
+    resultadoLabel->update();
+    visualizador->limpiar();
+    indicadorPaso->setText("Paso 0 / 0");
+}
+
 void VistaPruebaCadenaWidget::actualizarRecorrido() {
-    const DFAUnion* unionActual = vistaUnion->obtenerDFAUnion();
-    if (unionActual == nullptr) {
-        visualizadorUnion->limpiar();
+    DFA* dfaSeleccionado = obtenerDFASeleccionado();
+    if (dfaSeleccionado == nullptr || !hayResultados) {
+        visualizador->limpiar();
         indicadorPaso->setText("Paso 0 / 0");
         return;
     }
-    visualizadorUnion->mostrarDFAUnion(*unionActual);
+    
+    visualizador->mostrarDFA(*dfaSeleccionado);
     if (pasoActual == 0) {
-        visualizadorUnion->resaltarEstadoUnion(unionActual->obtenerEstadoInicialDFA1(), unionActual->obtenerEstadoInicialDFA2());
+        visualizador->resaltarEstadoDFA(dfaSeleccionado->obtenerEstadoInicial());
     } else {
-        const NodoPasoDFAUnion* paso = obtenerPasoUnion(pasoActual);
+        const NodoPasoDFA* paso = obtenerPasoDFA(pasoActual);
         if (paso != nullptr) {
-            visualizadorUnion->resaltarTransicionUnion(paso->origenDFA1, paso->origenDFA2,
-                                                       paso->simbolo, paso->destinoDFA1,
-                                                       paso->destinoDFA2);
+            visualizador->resaltarTransicionDFA(paso->origen, paso->simbolo, paso->destino);
         }
     }
-    indicadorPaso->setText(QString("Paso %1 / %2").arg(pasoActual).arg(pasosUnionVisual.cantidad()));
+    indicadorPaso->setText(QString("Paso %1 / %2").arg(pasoActual).arg(pasosDFAVisual.cantidad()));
     botonAnterior->setEnabled(pasoActual > 0);
-    botonSiguiente->setEnabled(pasoActual < pasosUnionVisual.cantidad());
+    botonSiguiente->setEnabled(pasoActual < pasosDFAVisual.cantidad());
+}
+
+void VistaPruebaCadenaWidget::actualizarDisponibilidad() {
+    EditorDFAWidget* editorSeleccionado = obtenerEditorSeleccionado();
+    const bool valido = editorSeleccionado->esDFAValido();
+    
+    etiquetaEstadoDFA->setText(valido ? "Válido" : 
+                               (editorSeleccionado->estaValidado() ? "Inválido" : "Pendiente"));
+    etiquetaEstadoDFA->setProperty("valid", valido);
+    etiquetaEstadoDFA->style()->unpolish(etiquetaEstadoDFA);
+    etiquetaEstadoDFA->style()->polish(etiquetaEstadoDFA);
+    
+    botonEvaluar->setEnabled(valido);
+    const QString nombreDFA = comboAutomata->currentIndex() == 0 ? "DFA 1" : "DFA 2";
+    botonEvaluar->setToolTip(valido ? "Evalúa la cadena." : "Valida " + nombreDFA + " antes de evaluar.");
+    
+    if (valido) {
+        mensajeEstado->setText("Todo listo. Ingresa una cadena para evaluarla.");
+    } else if (!editorSeleccionado->estaValidado()) {
+        mensajeEstado->setText("Valida " + nombreDFA + " antes de evaluar cadenas.");
+    } else {
+        mensajeEstado->setText("Corrige y vuelve a validar " + nombreDFA + " antes de evaluar cadenas.");
+    }
+}
+
+void VistaPruebaCadenaWidget::cambiarDFASeleccionado() {
+    limpiarResultados();
+    actualizarDisponibilidad();
 }
 
 void VistaPruebaCadenaWidget::invalidarResultados() {
     limpiarResultados();
     actualizarDisponibilidad();
-    mensajeEstado->setText("Los autómatas cambiaron. Valida y genera nuevamente la unión.");
 }

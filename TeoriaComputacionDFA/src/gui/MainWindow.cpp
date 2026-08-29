@@ -322,7 +322,7 @@ QWidget* MainWindow::crearPaginaPruebas() {
     scroll->setFrameShape(QFrame::NoFrame);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     vistaPruebaCadena = new VistaPruebaCadenaWidget(
-        dfa1, dfa2, editorDFA1, editorDFA2, vistaUnionDFA);
+        dfa1, dfa2, editorDFA1, editorDFA2);
     scroll->setWidget(vistaPruebaCadena);
     return scroll;
 }
