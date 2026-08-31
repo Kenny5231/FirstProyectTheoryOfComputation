@@ -22,11 +22,18 @@
 #include <QPolygonF>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QFont>
 #include <cmath>
 
 namespace {
 const double PI = 3.14159265358979323846;
 const double NODE_DIAMETER = 70.0;
+const QColor COLOR_AZUL("#2563EB");
+const QColor COLOR_AZUL_OSCURO("#1E3A8A");
+const QColor COLOR_TEXTO("#0F172A");
+const QColor COLOR_ARISTA("#64748B");
+const QColor COLOR_FINAL("#14B8A6");
+const QColor COLOR_RESALTADO("#16A34A");
 
 QString estadoCompuesto(const std::string& primero, const std::string& segundo) {
     return "(" + QString::fromStdString(primero) + "," + QString::fromStdString(segundo) + ")";
@@ -69,6 +76,7 @@ bool transicionMenorEnParejaCompuesta(const std::string& o11, const std::string&
     if (d11 != d21) return d11 < d21;
     return d12 < d22;
 }
+
 }
 
 VisualizadorAutomataWidget::VisualizadorAutomataWidget(QWidget* parent)
@@ -88,6 +96,14 @@ void VisualizadorAutomataWidget::construirControles() {
     menos->setToolTip("Reducir zoom");
     ajustar->setToolTip("Ajustar diagrama");
     mas->setToolTip("Aumentar zoom");
+    const QString estiloBoton =
+        "QPushButton { background-color: #FFFFFF; color: #1E293B; border: 1px solid #CBD5E1; "
+        "border-radius: 8px; min-width: 96px; min-height: 30px; font-weight: 600; }"
+        "QPushButton:hover { background-color: #EFF6FF; border-color: #93C5FD; color: #1D4ED8; }"
+        "QPushButton:pressed { background-color: #DBEAFE; }";
+    menos->setStyleSheet(estiloBoton);
+    ajustar->setStyleSheet(estiloBoton);
+    mas->setStyleSheet(estiloBoton);
     controles->addStretch();
     controles->addWidget(menos);
     controles->addWidget(ajustar);
@@ -96,8 +112,10 @@ void VisualizadorAutomataWidget::construirControles() {
     principal->addLayout(controles);
     vista->setMinimumHeight(380);
     vista->setRenderHint(QPainter::Antialiasing);
+    vista->setRenderHint(QPainter::TextAntialiasing);
     vista->setDragMode(QGraphicsView::ScrollHandDrag);
-    vista->setBackgroundBrush(QColor("#F8FAFC"));
+    vista->setBackgroundBrush(QColor("#EEF4FB"));
+    vista->setStyleSheet("QGraphicsView { border: 1px solid #D8E2EE; border-radius: 10px; background: #EEF4FB; }");
     principal->addWidget(vista, 1);
     connect(menos, &QPushButton::clicked, this, [this]() { vista->scale(0.85, 0.85); });
     connect(ajustar, &QPushButton::clicked, this, [this]() { ajustarVista(); });
@@ -232,16 +250,52 @@ void VisualizadorAutomataWidget::mostrarDFAUnion(const DFAUnion& dfaUnion) {
 
 void VisualizadorAutomataWidget::dibujarEstado(double x, double y, const QString& nombre, bool inicial, bool final, double diametro) {
     const bool resaltado = mostrandoUnion ? nombre == estadoCompuesto(origenUnion1, origenUnion2) : nombre.toStdString() == estadoResaltado;
-    QBrush relleno(resaltado ? QColor("#DBEAFE") : QColor("#FFFFFF"));
-    QPen borde(QColor("#2563EB"), resaltado ? 3 : 2);
+    QBrush relleno(resaltado ? QColor("#DCFCE7") : QColor("#FFFFFF"));
+    const QColor colorBorde = resaltado ? COLOR_RESALTADO : (final ? COLOR_FINAL : COLOR_AZUL);
+    QPen borde(colorBorde, resaltado ? 4 : 2.5);
+    QGraphicsEllipseItem* sombra = escena->addEllipse(x - diametro / 2.0 + 4, y - diametro / 2.0 + 6,
+                                                      diametro, diametro, Qt::NoPen,
+                                                      QBrush(QColor(15, 23, 42, 26)));
+    sombra->setZValue(2);
     QGraphicsEllipseItem* circulo = escena->addEllipse(x - diametro / 2.0, y - diametro / 2.0, diametro, diametro, borde, relleno);
     circulo->setZValue(3);
     if (final) {
-        QGraphicsEllipseItem* circuloInterior = escena->addEllipse(x - diametro / 2.0 + 6, y - diametro / 2.0 + 6, diametro - 12, diametro - 12, QPen(QColor("#2563EB"), 2), Qt::NoBrush);
+        QGraphicsEllipseItem* circuloInterior = escena->addEllipse(x - diametro / 2.0 + 7, y - diametro / 2.0 + 7, diametro - 14, diametro - 14, QPen(colorBorde, 2.2), Qt::NoBrush);
         circuloInterior->setZValue(3);
     }
+    if (inicial && mostrandoUnion) {
+        QGraphicsEllipseItem* haloInicial = escena->addEllipse(
+            x - diametro / 2.0 - 7, y - diametro / 2.0 - 7,
+            diametro + 14, diametro + 14, QPen(COLOR_AZUL_OSCURO, 2.4),
+            Qt::NoBrush);
+        haloInicial->setZValue(2);
+
+        QGraphicsTextItem* etiquetaInicial = escena->addText("q0U");
+        QFont fuenteInicial = etiquetaInicial->font();
+        fuenteInicial.setPointSize(8);
+        fuenteInicial.setBold(true);
+        etiquetaInicial->setFont(fuenteInicial);
+        etiquetaInicial->setDefaultTextColor(QColor("#FFFFFF"));
+        QRectF rectInicial = etiquetaInicial->boundingRect();
+        const QRectF fondoInicial(
+            x - rectInicial.width() / 2.0 - 8,
+            y - diametro / 2.0 - 32,
+            rectInicial.width() + 16,
+            rectInicial.height() + 6);
+        QGraphicsRectItem* badgeInicial = escena->addRect(
+            fondoInicial, QPen(COLOR_AZUL_OSCURO, 1.2), QBrush(COLOR_AZUL_OSCURO));
+        badgeInicial->setZValue(5);
+        etiquetaInicial->setPos(
+            fondoInicial.x() + (fondoInicial.width() - rectInicial.width()) / 2.0,
+            fondoInicial.y() + (fondoInicial.height() - rectInicial.height()) / 2.0);
+        etiquetaInicial->setZValue(6);
+    }
     QGraphicsTextItem* texto = escena->addText(nombre);
-    texto->setDefaultTextColor(QColor("#0F172A"));
+    QFont fuente = texto->font();
+    fuente.setPointSize(diametro > NODE_DIAMETER ? 10 : 9);
+    fuente.setBold(true);
+    texto->setFont(fuente);
+    texto->setDefaultTextColor(COLOR_TEXTO);
     QRectF rect = texto->boundingRect();
     texto->setPos(x - rect.width() / 2.0, y - rect.height() / 2.0);
     texto->setZValue(4);
@@ -249,13 +303,23 @@ void VisualizadorAutomataWidget::dibujarEstado(double x, double y, const QString
 }
 
 void VisualizadorAutomataWidget::dibujarFlechaEntrada(double x, double y, double diametro) {
-    QPen pen(QColor("#2563EB"), 2);
-    QGraphicsLineItem* linea = escena->addLine(x - diametro / 2.0 - 48, y, x - diametro / 2.0 - 4, y, pen);
+    QPen pen(COLOR_AZUL, 3);
+    pen.setCapStyle(Qt::RoundCap);
+    QGraphicsLineItem* linea = escena->addLine(x - diametro / 2.0 - 58, y, x - diametro / 2.0 - 5, y, pen);
     linea->setZValue(0);
     QPolygonF punta;
-    punta << QPointF(x - diametro / 2.0 - 4, y) << QPointF(x - diametro / 2.0 - 14, y - 6) << QPointF(x - diametro / 2.0 - 14, y + 6);
-    QGraphicsPolygonItem* flecha = escena->addPolygon(punta, pen, QBrush(QColor("#2563EB")));
+    punta << QPointF(x - diametro / 2.0 - 4, y) << QPointF(x - diametro / 2.0 - 17, y - 8) << QPointF(x - diametro / 2.0 - 17, y + 8);
+    QGraphicsPolygonItem* flecha = escena->addPolygon(punta, pen, QBrush(COLOR_AZUL));
     flecha->setZValue(0);
+
+    QGraphicsTextItem* etiqueta = escena->addText("inicio");
+    QFont fuente = etiqueta->font();
+    fuente.setPointSize(8);
+    fuente.setBold(true);
+    etiqueta->setFont(fuente);
+    etiqueta->setDefaultTextColor(COLOR_AZUL_OSCURO);
+    etiqueta->setPos(x - diametro / 2.0 - 58, y - 29);
+    etiqueta->setZValue(2);
 }
 
 void VisualizadorAutomataWidget::dibujarPuntaFlecha(const QPointF& punta, double anguloGrados,
@@ -267,14 +331,16 @@ void VisualizadorAutomataWidget::dibujarPuntaFlecha(const QPointF& punta, double
                       punta.y() - tamano * std::sin(angulo - 0.42))
            << QPointF(punta.x() - tamano * std::cos(angulo + 0.42),
                       punta.y() - tamano * std::sin(angulo + 0.42));
-    QGraphicsPolygonItem* item = escena->addPolygon(cabeza, QPen(pen.color(), 1.2), QBrush(pen.color()));
+    QGraphicsPolygonItem* item = escena->addPolygon(cabeza, QPen(pen.color(), 1.4), QBrush(pen.color()));
     item->setZValue(1);
 }
 
 void VisualizadorAutomataWidget::dibujarArista(double x1, double y1, double x2, double y2,
                                                const QString& simbolo, bool loop, bool resaltada,
                                                double diametro, int totalVariantes, int variante) {
-    QPen pen(resaltada ? QColor("#16A34A") : QColor("#64748B"), resaltada ? 3 : 2);
+    QPen pen(resaltada ? COLOR_RESALTADO : COLOR_ARISTA, resaltada ? 3.4 : 2.4);
+    pen.setCapStyle(Qt::RoundCap);
+    pen.setJoinStyle(Qt::RoundJoin);
     QPainterPath camino;
     QPointF punta;
     double etiquetaX = 0.0;
@@ -350,7 +416,7 @@ void VisualizadorAutomataWidget::dibujarArista(double x1, double y1, double x2, 
             px = -px;
             py = -py;
         }
-        const double separacion = totalVariantes > 1 ? 42.0 : 0.0;
+        const double separacion = totalVariantes > 1 ? 56.0 : 0.0;
         const double desvio = (variante - (static_cast<double>(totalVariantes) - 1.0) / 2.0) * separacion;
         const QPointF control(puntoMedio.x() + px * desvio, puntoMedio.y() + py * desvio);
         camino.moveTo(inicio);
@@ -360,25 +426,32 @@ void VisualizadorAutomataWidget::dibujarArista(double x1, double y1, double x2, 
             camino.quadTo(control, fin);
         }
         punta = fin;
-        double desplazamientoEtiqueta = 16.0;
-        if (desvio > 0.0) desplazamientoEtiqueta = desvio + 20.0;
-        else if (desvio < 0.0) desplazamientoEtiqueta = desvio - 20.0;
+        double desplazamientoEtiqueta = 24.0;
+        if (desvio > 0.0) desplazamientoEtiqueta = desvio + 24.0;
+        else if (desvio < 0.0) desplazamientoEtiqueta = desvio - 24.0;
         etiquetaX = puntoMedio.x() + px * desplazamientoEtiqueta;
         etiquetaY = puntoMedio.y() + py * desplazamientoEtiqueta;
     }
 
     QGraphicsPathItem* arista = escena->addPath(camino, pen);
     arista->setZValue(0);
-    dibujarPuntaFlecha(punta, camino.angleAtPercent(1.0), pen, 12.0);
+    dibujarPuntaFlecha(punta, camino.angleAtPercent(1.0), pen, 14.0);
 
     QGraphicsTextItem* texto = escena->addText(simbolo);
-    texto->setDefaultTextColor(resaltada ? QColor("#15803D") : QColor("#334155"));
+    QFont fuente = texto->font();
+    fuente.setPointSize(9);
+    fuente.setBold(true);
+    texto->setFont(fuente);
+    texto->setDefaultTextColor(resaltada ? QColor("#14532D") : QColor("#1E293B"));
     const QRectF rectTexto = texto->boundingRect();
     const QPointF posicionEtiqueta(etiquetaX - rectTexto.width() / 2.0,
                                    etiquetaY - rectTexto.height() / 2.0);
     const QRectF fondo = QRectF(posicionEtiqueta.x(), posicionEtiqueta.y(),
-                                rectTexto.width(), rectTexto.height()).adjusted(-4, -2, 4, 2);
-    QGraphicsRectItem* fondoEtiqueta = escena->addRect(fondo, QPen(QColor("#E2E8F0")), QBrush(QColor("#FFFFFF")));
+                                rectTexto.width(), rectTexto.height()).adjusted(-8, -4, 8, 4);
+    QGraphicsRectItem* fondoEtiqueta = escena->addRect(
+        fondo,
+        QPen(resaltada ? QColor("#86EFAC") : QColor("#D6E3F3"), 1.2),
+        QBrush(resaltada ? QColor("#DCFCE7") : QColor("#FFFFFF")));
     fondoEtiqueta->setZValue(1);
     texto->setPos(posicionEtiqueta);
     texto->setZValue(2);
